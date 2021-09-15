@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>covid-animation</title>
+  <script src='https://unpkg.com/d3@6.2.0/dist/d3.min.js'></script>
+  <script src='https://unpkg.com/topojson@3.0.2/dist/topojson.js'></script>
+  <link rel="stylesheet" href="./main.css">
+
+	<style>
+
+		@font-face {
+			font-family: 'Palatino';
+			font-weight: normal;
+			font-style: normal;
+			font-display: swap; /* Read next point */
+			src: local('Palatino'),
+				url('./Palatino.woff') format('woff');
+		}
+
+		@font-face {
+			font-family: 'Raleway';
+			font-weight: normal;
+			font-style: normal;
+			font-display: swap; /* Read next point */
+			src: local('Raleway'),
+				url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap') format('woff');
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: 'Palatino', 'Georgia', 'serif';
+		}
+
+		a,
+		a:hover,
+		a:visited {
+			color: #0071bc;
+		}
+
+		#map {
+			top: 0;
+			height: 100vh;
+			width: 100vw;
+			position: fixed;
+		}
+
+		#satellite {
+			top: 0;
+			height: 100vh;
+			width: 100vw;
+			position: fixed;
+		}
+
+		#header {
+			margin: auto;
+			width: 100%;
+			position: relative;
+			z-index: 5;
+		}
+
+		#header h1,
+		#header h2,
+		#header p {
+			margin: 0;
+			padding: 2vh 2vw;
+			text-align: center;
+		}
+
+		/* MODIFIED */
+		h3 {
+			opacity: 1;
+			color: #0a0a0a;
+			font-weight: 400;
+			font-size: 56px;
+			line-height: normal;
+			text-align: center;
+			margin-bottom: 25px
+		}
+
+		#footer {
+			width: 100%;
+			min-height: 5vh;
+			padding-top: 2vh;
+			padding-bottom: 2vh;
+			text-align: left;
+			line-height: 25px;
+			font-size: 16px;
+			/* font-size: 1.125rem; */
+			position: relative;
+			z-index: 5;
+		}
+
+		#features {
+			padding-top: 10vh;
+			padding-bottom: 10vh;
+		}
+
+		.hidden {
+			visibility: hidden;
+		}
+
+		.centered {
+			width: 75vw;
+			margin: 0 auto;
+		}
+
+		.lefty {
+			width: 33vw;
+			margin-left: 5vw;
+		}
+
+		.righty {
+			width: 33vw;
+			margin-left: 62vw;
+		}
+
+		.fully {
+			width: 100%;
+			margin: auto;
+		}
+
+		.light {
+			color: #0a0a0a;
+			background-color: #fafafa;
+		}
+
+		.dark {
+			color: #fafafa;
+			background-color: #444;
+		}
+
+		.step {
+			padding-bottom: 50vh;
+			opacity: 0.25;
+		}
+
+		.step.active-chapter {
+			opacity: 0.99;
+		}
+
+		.step div {
+			padding: 25px 50px;
+			line-height: 25px;
+			font-size: 18px;
+			line-height: 1.6;
+		}
+
+		.step img {
+			width: 100%;
+		}
+
+		@media (max-width: 750px) {
+
+			.centered,
+			.lefty,
+			.righty,
+			.fully {
+				width: 90vw;
+				margin: 0 auto;
+			}
+		}
+
+		/* Fix issue on mobile browser where scroll breaks  */
+		.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan,
+		.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan .mapboxgl-canvas {
+			touch-action: unset;
+		}
+
+		.map-color-key {
+			width: 15px;
+			height: 15px;
+			padding: 0px !important;
+			display: inline-block;
+			border-radius: 1.5px;
+		}
+
+		.photo-caption {
+			font-style: italic;
+			font-family: 'Palatino', 'Georgia', 'serif';
+			font-size: 14px;
+		}
+
+		.firstcharacter {
+			float: left;
+			font-family: 'Raleway';
+			font-size: 75px;
+			line-height: 60px;
+			padding-top: 4px;
+			padding-right: 8px;
+			padding-left: 3px;
+		}
+		
+	</style>
+</head>
+<body>
+  <div id="story"></div>
+  <div id="viz-container" style="display: sticky; top: 0px">
+    <div id="container">
+      <div id="mapAndControls" style="display: sticky; top: 0px">
+      <!-- <div id="mapAndControls"> -->
+        <div id="map-container"></div>
+        <div id="legendContainer">
+          <div id="colorContainer"></div>
+          <div id="dateCounter">
+            <form id="scrubberForm" style="font: 12px var(--sans-serif); font-variant-numeric: tabular-nums; display: flex; height: 20px; align-items: center;">
+              <button name=b id="playBTN" type=button style="width: 5em;"></button>
+              <label style="display: grid; align-items: center;">
+                <input id="scrubInput" name=i type=range min=0 max=5 value=0 step=1>
+              </label>
+            </form>
+            <!-- <div id="select-dropdown">
+              <label for="sort-select">Sort by:</label>
+              <select name="sort" id="sort-select">
+                  <option value="cases">Cases</option>
+                  <option value="perc">Per Capita??</option>
+              </select>
+            </div>   -->
+          </div>
+        </div>
+    </div>
+      <div id="chart-container"></div>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script src='main.js'></script>
+</body>
+</html>

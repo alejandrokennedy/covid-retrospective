@@ -1,0 +1,20 @@
+#container {
+  /* border: 3px solid green; */
+  display: flex;
+  flex-wrap: wrap;
+  width: calc(100vw - 15px);
+  /* width: 1000; */
+}
+
+#mapAndControls {
+  /* border: 3px solid orangered; */
+  height: 100vh;
+  width: 600px;
+  flex-grow: 2;
+}
+
+#chart-container {
+  /* border: 3px solid goldenrod; */
+  width: 400px;
+  flex-grow: 1;
+}
