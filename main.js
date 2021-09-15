@@ -90,17 +90,17 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
   .attr('width', mapWidth)
   .attr('height', mapHeight)
 
-mapSvg.append('text')
-  .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2})`)
-  .style('text-anchor', 'middle')
-  .style('font-size', () => d3.min([mapWidth/20, 30]))
-  .text('COVID-19 Daily New Cases')
+// mapSvg.append('text')
+//   .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2})`)
+//   .style('text-anchor', 'middle')
+//   .style('font-size', () => d3.min([mapWidth/20, 30]))
+//   .text('COVID-19 Daily New Cases')
 
-mapSvg.append('text')
-  .style('text-anchor', 'middle')
-  .style('font-size', () => d3.min([mapWidth/30, 14]))
-  .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2 + 20})`)
-  .text('Two-Week Rolling Average')
+// mapSvg.append('text')
+//   .style('text-anchor', 'middle')
+//   .style('font-size', () => d3.min([mapWidth/30, 14]))
+//   .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2 + 20})`)
+//   .text('Two-Week Rolling Average')
 
 // //------------------------------------------------------
 // // CHART SVG SETUP

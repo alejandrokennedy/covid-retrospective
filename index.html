@@ -8,6 +8,17 @@
   <script src='https://unpkg.com/topojson@3.0.2/dist/topojson.js'></script>
   <link rel="stylesheet" href="./main.css">
 
+	<!--  -->
+	<link rel="preload" as="font" href="./Palatino.woff" type="font/woff2" crossorigin="anonymous">
+	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="preload" as="font" crossorigin="anonymous">>
+	
+	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
+
+	<script src="https://unpkg.com/enter-view"></script>
+	<!--  -->
+	
 	<style>
 
 		@font-face {
@@ -197,7 +208,8 @@
 </head>
 <body>
   <div id="story"></div>
-  <div id="viz-container" style="display: sticky; top: 0px">
+  <!-- <div id="viz-container" style="display: sticky; top: 0px"> -->
+  <div id="viz-container" style="position: fixed; top: 0">
     <div id="container">
       <div id="mapAndControls" style="display: sticky; top: 0px">
       <!-- <div id="mapAndControls"> -->
