@@ -302,7 +302,6 @@ async function getData() {
   }
 
   const story = document.getElementById('story');
-  console.log(story)
 
   const storyFeatures = document.createElement('div');
 			storyFeatures.setAttribute('id', 'storyFeatures');
@@ -999,6 +998,35 @@ async function getData() {
 
     update(keyframe)
   }
+
+
+  enterView({
+    selector: '.step',
+    enter: function(el) {
+      el.classList.add('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id == el.id);
+
+    },
+    progress: function(el, progress) {
+      // if (el.id == '0') {
+      //   if (opacityScale.domain()[0] === 0) opacityScale.domain([progress, 1])
+      //   document.getElementById('satellite').style.opacity = opacityScale(progress)
+      // } else {
+      //   document.getElementById('satellite').style.opacity = 0
+      // }
+    },
+    exit: function(el) {
+      el.classList.remove('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id === el.id);
+      const prevChapter = config.chapters.find(chap => chap.id === (Number(el.id) - 1).toString());
+      // map[prevChapter.mapAnimation || 'flyTo'](ua.device.type === "Mobile" ? prevChapter.mLocation : prevChapter.location);
+      
+      // if (prevChapter.onChapterEnter.length > 0) prevChapter.onChapterEnter.forEach(setLayerOpacity)
+
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
 }
 
 getData()
