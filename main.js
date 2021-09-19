@@ -665,7 +665,7 @@ async function getData() {
     format = value => value,
     initial = 0,
     delay = null,
-    autoplay = true,
+    autoplay = false,
     loop = true,
     alternate = false
   } = {}) {
