@@ -717,11 +717,41 @@ async function getData() {
   })
 
   const scrubSelect = d3.select(scrubber)
-    .on('input', function() { scrub(this) })
-  
+    .on('input', function() {
+      // scrub(this)
+      // scrub(this.value)
+    })
+
   d3.select('#scrubInput')
     .attr('max', keyFrames.length - 1)
     .style('width', () => `${mapWidth / 4}px`)
+
+  // // DRAWING: DATE DIVS
+  
+  // d3.select('body')
+  //   .append('div')
+  //   .attr('id', 'dates')
+  //   .style('position', 'fixed')
+  //   .style('top', 0)
+
+  const dateContainer = d3.select('#story')
+    .append('div')
+    .attr('id', 'dates')
+    .style('position', 'absolute')
+    .style('top', 0)
+
+  dateContainer.selectAll('.dateDiv')
+    .data(keyFrames)
+    .join('div')
+    .attr('class', 'dateDiv')
+    .attr('id', (d, i) => i)
+    // .style('position', 'fixed')
+    // .style('top', (d, i) => 10 * i)
+    .attr('height', 10)
+    .attr('width', 20)
+    .text(d => d.date)
+
+
 
   // //------------------------------------------------------
   // // DRAWING: SPIKES
@@ -980,8 +1010,11 @@ async function getData() {
   const updateValues = values(chartSvg);
   const updateTicker = ticker(mapSvg);
 
-  function scrub(form) {
-    const keyframe = form.value
+  function scrub(keyframe) {
+    // const keyframe = form
+    
+    // console.log(keyframe)
+    console.log(keyframe.statesRanked[0].value)
 
     const transition = chartSvg.transition()
       .duration(duration)
@@ -999,21 +1032,16 @@ async function getData() {
     update(keyframe)
   }
 
-
   enterView({
     selector: '.step',
     enter: function(el) {
+      // console.log(el)
       el.classList.add('active-chapter');
       const chapter = config.chapters.find(chap => chap.id == el.id);
 
     },
     progress: function(el, progress) {
-      // if (el.id == '0') {
-      //   if (opacityScale.domain()[0] === 0) opacityScale.domain([progress, 1])
-      //   document.getElementById('satellite').style.opacity = opacityScale(progress)
-      // } else {
-      //   document.getElementById('satellite').style.opacity = 0
-      // }
+      // ...
     },
     exit: function(el) {
       el.classList.remove('active-chapter');
@@ -1027,6 +1055,31 @@ async function getData() {
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
   });
+
+  enterView({
+    selector: '.dateDiv',
+    enter: function(el) {
+
+      console.log('divValue:', Number(el.id))
+      console.log('divValueKeyframe:', keyFrames[Number(el.id)])
+      console.log(keyFrames[el.id].statesRanked[0].value)
+      
+      // console.log(el.id)
+      // console.log(keyFrames[el.id])
+      scrub(keyFrames[Number(el.id)])
+
+    },
+    progress: function(el, progress) {
+      // ...
+    },
+    exit: function(el) {
+      // ...
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.99
+  });
+  
+
 }
 
 getData()
