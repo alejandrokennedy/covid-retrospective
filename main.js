@@ -289,7 +289,7 @@ async function getData() {
   }
   })
   config.chapters = chapters
-  // console.log(config)
+  console.log(config)
 
   ///////////////////// CHAPTERS vvv
 
@@ -1011,11 +1011,6 @@ async function getData() {
   const updateTicker = ticker(mapSvg);
 
   function scrub(keyframe) {
-    // const keyframe = form
-    
-    // console.log(keyframe)
-    console.log(keyframe.statesRanked[0].value)
-
     const transition = chartSvg.transition()
       .duration(duration)
       .ease(d3.easeLinear)
@@ -1059,15 +1054,7 @@ async function getData() {
   enterView({
     selector: '.dateDiv',
     enter: function(el) {
-
-      console.log('divValue:', Number(el.id))
-      console.log('divValueKeyframe:', keyFrames[Number(el.id)])
-      console.log(keyFrames[el.id].statesRanked[0].value)
-      
-      // console.log(el.id)
-      // console.log(keyFrames[el.id])
       scrub(keyFrames[Number(el.id)])
-
     },
     progress: function(el, progress) {
       // ...
