@@ -283,13 +283,15 @@ async function getData() {
     image: d.photoUrl,
     alignment: d.alignment,
     description: d.content,
+    date: d.date
     // onChapterEnter: layerFormat(d.onLayerEnter),
     // onChapterExit: layerFormat(d.onLayerExit),
     // onChapterEnter: Object.entries(d).splice(17).map(d => ({ "layer": d[0], "opacity": !d[1] ? 0 : Number(d[1])}))
   }
   })
   config.chapters = chapters
-  console.log(config)
+
+  console.log('chapters', chapters)
 
   ///////////////////// CHAPTERS vvv
 
@@ -736,21 +738,38 @@ async function getData() {
 
   const dateContainer = d3.select('#story')
     .append('div')
-    .attr('id', 'dates')
+    .attr('id', 'dateContainer')
     .style('position', 'absolute')
     .style('top', 0)
 
-  dateContainer.selectAll('.dateDiv')
+  const dateDivs = dateContainer.selectAll('.dateDiv')
     .data(keyFrames)
     .join('div')
     .attr('class', 'dateDiv')
     .attr('id', (d, i) => i)
-    // .style('position', 'fixed')
-    // .style('top', (d, i) => 10 * i)
     .attr('height', 10)
     .attr('width', 20)
+    .style('margin', '50px')
     .text(d => d.date)
 
+  const steps = d3.selectAll('.step')
+    .data(chapters)
+    .call(div => {
+      div.filter(d => d.id != 0)
+        .style('position', 'absolute')
+        .style('top', (d, i) => {
+          const div = dateDivs.nodes().find(div => div.innerHTML === config.chapters[i].date)
+          if (div) return `${div.getBoundingClientRect().top}px`
+          return '12998px'
+    })
+    })
+
+  console.log(steps.nodes())
+  console.log(steps.data())
+
+  d3.select('#footer')
+    .style('position', 'absolute')
+    .style('top', '12998px')
 
 
   // //------------------------------------------------------
