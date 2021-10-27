@@ -291,8 +291,6 @@ async function getData() {
   })
   config.chapters = chapters
 
-  console.log('chapters', chapters)
-
   ///////////////////// CHAPTERS vvv
 
 
@@ -402,10 +400,15 @@ async function getData() {
     .attr('d', path)
     .attr('stroke-linejoin', 'round');
 
+    // const rawCountiesUnfiltered = await d3.csv('./data/counties-nyt-data.csv')
+    // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
   const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
+
+  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
+  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
 
   // //------------------------------------------------------
   // // MAP DATA
@@ -652,7 +655,7 @@ async function getData() {
     frame.statesRanked = rank(state => frame.states.get(state));
     return frame;
   })
-  const keyFrames = protoKeyFrames.slice(26)
+  const keyFrames = protoKeyFrames
   const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
   const nameFrames = d3.groups(keyFrames.flatMap(data => data.statesRanked), d => d.state)
   prev = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])))
@@ -730,17 +733,12 @@ async function getData() {
 
   // // DRAWING: DATE DIVS
   
-  // d3.select('body')
-  //   .append('div')
-  //   .attr('id', 'dates')
-  //   .style('position', 'fixed')
-  //   .style('top', 0)
-
   const dateContainer = d3.select('#story')
     .append('div')
     .attr('id', 'dateContainer')
     .style('position', 'absolute')
-    .style('top', 0)
+    .style('top', window.innerHeight)
+    .style('opacity', 0.3)
 
   const dateDivs = dateContainer.selectAll('.dateDiv')
     .data(keyFrames)
@@ -758,14 +756,12 @@ async function getData() {
       div.filter(d => d.id != 0)
         .style('position', 'absolute')
         .style('top', (d, i) => {
+          if (i === 0) console.log('d', d)
           const div = dateDivs.nodes().find(div => div.innerHTML === config.chapters[i].date)
           if (div) return `${div.getBoundingClientRect().top}px`
-          return '12998px'
+          return '24998px'
+        })
     })
-    })
-
-  console.log(steps.nodes())
-  console.log(steps.data())
 
   d3.select('#footer')
     .style('position', 'absolute')
