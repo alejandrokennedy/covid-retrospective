@@ -7,6 +7,7 @@ const opacity = 0.7
 const avgNum = 14
 const duration = 225
 const excludedStates = ["66", "69", "72", "78"]
+let dateProgress = 0
 
 // //------------------------------------------------------
 // // PAGE SETUP
@@ -666,66 +667,66 @@ async function getData() {
   // //------------------------------------------------------
   // // DRAWING: SCRUBBER
     
-  function Scrubber({
-    format = value => value,
-    initial = 0,
-    delay = null,
-    autoplay = false,
-    loop = true,
-    alternate = false
-  } = {}) {
-    const form = d3.select('#scrubberForm').node()
+  // function Scrubber({
+  //   format = value => value,
+  //   initial = 0,
+  //   delay = null,
+  //   autoplay = false,
+  //   loop = true,
+  //   alternate = false
+  // } = {}) {
+  //   const form = d3.select('#scrubberForm').node()
 
-    let timer = null;
-    let direction = 1;
-    function start() {
-      form.b.textContent = "Pause";
-      timer = delay === null
-        ? requestAnimationFrame(tick)
-        : setInterval(tick, delay);
-    }
-    function stop() {
-      form.b.textContent = "Play";
-      if (delay === null) cancelAnimationFrame(timer);
-      else clearInterval(timer);
-      timer = null;
-    }
-    function tick() {
-      if (delay === null) timer = requestAnimationFrame(tick);
-      if (form.i.valueAsNumber === (direction > 0 ? keyFrames.length - 1 : direction < 0 ? 0 : NaN)) {
-        if (!loop) return stop();
-        if (alternate) direction = -direction;
-      }
-      form.i.valueAsNumber = (form.i.valueAsNumber + direction + keyFrames.length) % keyFrames.length;
-      form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
-    }
-    form.i.oninput = event => {
-      if (event && event.isTrusted && timer) form.b.onclick();
-      form.value = keyFrames[form.i.valueAsNumber];
-    };
-    form.b.onclick = () => {
-      if (timer) return stop();
-      direction = alternate && form.i.valueAsNumber === keyFrames.length - 1 ? -1 : 1;
-      form.i.valueAsNumber = (form.i.valueAsNumber + direction) % keyFrames.length;
-      form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
-      start();
-    };
-    form.i.oninput();
-    if (autoplay) start();
-    else stop();
-    return form;
-  }
+  //   let timer = null;
+  //   let direction = 1;
+  //   function start() {
+  //     form.b.textContent = "Pause";
+  //     timer = delay === null
+  //       ? requestAnimationFrame(tick)
+  //       : setInterval(tick, delay);
+  //   }
+  //   function stop() {
+  //     form.b.textContent = "Play";
+  //     if (delay === null) cancelAnimationFrame(timer);
+  //     else clearInterval(timer);
+  //     timer = null;
+  //   }
+  //   function tick() {
+  //     if (delay === null) timer = requestAnimationFrame(tick);
+  //     if (form.i.valueAsNumber === (direction > 0 ? keyFrames.length - 1 : direction < 0 ? 0 : NaN)) {
+  //       if (!loop) return stop();
+  //       if (alternate) direction = -direction;
+  //     }
+  //     form.i.valueAsNumber = (form.i.valueAsNumber + direction + keyFrames.length) % keyFrames.length;
+  //     form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
+  //   }
+  //   form.i.oninput = event => {
+  //     if (event && event.isTrusted && timer) form.b.onclick();
+  //     form.value = keyFrames[form.i.valueAsNumber];
+  //   };
+  //   form.b.onclick = () => {
+  //     if (timer) return stop();
+  //     direction = alternate && form.i.valueAsNumber === keyFrames.length - 1 ? -1 : 1;
+  //     form.i.valueAsNumber = (form.i.valueAsNumber + direction) % keyFrames.length;
+  //     form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
+  //     start();
+  //   };
+  //   form.i.oninput();
+  //   if (autoplay) start();
+  //   else stop();
+  //   return form;
+  // }
 
-  const scrubber = Scrubber({
-    delay: duration,
-    loop: false
-  })
+  // const scrubber = Scrubber({
+  //   delay: duration,
+  //   loop: false
+  // })
 
-  const scrubSelect = d3.select(scrubber)
-    .on('input', function() {
-      // scrub(this)
-      // scrub(this.value)
-    })
+  // const scrubSelect = d3.select(scrubber)
+  //   .on('input', function() {
+  //     // scrub(this)
+  //     // scrub(this.value)
+  //   })
 
   d3.select('#scrubInput')
     .attr('max', keyFrames.length - 1)
@@ -756,8 +757,7 @@ async function getData() {
       div.filter(d => d.id != 0)
         .style('position', 'absolute')
         .style('top', (d, i) => {
-          if (i === 0) console.log('d', d)
-          const div = dateDivs.nodes().find(div => div.innerHTML === config.chapters[i].date)
+          const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
           if (div) return `${div.getBoundingClientRect().top}px`
           return '24998px'
         })
@@ -1027,7 +1027,12 @@ async function getData() {
 
   function scrub(keyframe) {
     const transition = chartSvg.transition()
-      .duration(duration)
+      // .duration(duration)
+      .duration((d, i) => {
+        console.log('d', d)
+        console.log('i', i)
+        return duration
+      })
       .ease(d3.easeLinear)
 
     const largestBarVal = d3.max([keyframe.statesRanked[0].value.smaRound, 1]);
@@ -1072,13 +1077,14 @@ async function getData() {
       scrub(keyFrames[Number(el.id)])
     },
     progress: function(el, progress) {
-      // ...
+      dateProgress = progress
+      console.log('dateProgress', dateProgress)
     },
     exit: function(el) {
       // ...
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-    offset: 0.99
+    offset: 0.4
   });
   
 
