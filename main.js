@@ -281,6 +281,7 @@ async function getData() {
     return {
     id: i,
     title: d.title,
+    headline: d.headline,
     image: d.photoUrl,
     alignment: d.alignment,
     description: d.content,
@@ -321,6 +322,12 @@ async function getData() {
 				header.appendChild(subtitleText);
 			}
 
+			if (config.headline) {
+				const headlineText = document.createElement('h2');
+				headlineText.innerText = config.headline;
+				header.appendChild(headlineText);
+			}
+
 			if (config.byline) {
 				const bylineText = document.createElement('p');
 				bylineText.innerText = config.byline;
@@ -341,6 +348,12 @@ async function getData() {
 					const title = document.createElement('h3');
 					title.innerText = record.title;
 					chapter.appendChild(title);
+				}
+
+				if (record.headline) {
+					const headline = document.createElement('h4');
+					headline.innerText = record.headline;
+					chapter.appendChild(headline);
 				}
 
 				if (record.image) {
@@ -401,15 +414,19 @@ async function getData() {
     .attr('d', path)
     .attr('stroke-linejoin', 'round');
 
-    // const rawCountiesUnfiltered = await d3.csv('./data/counties-nyt-data.csv')
-    // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
-  const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-  const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+
+    // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
+    const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
+    const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
+  
+    // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+    // const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+  
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
-  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
+  console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
+  console.log('rawStatesUnfiltered', rawStatesUnfiltered)
 
   // //------------------------------------------------------
   // // MAP DATA
@@ -739,7 +756,7 @@ async function getData() {
     .attr('id', 'dateContainer')
     .style('position', 'absolute')
     .style('top', window.innerHeight)
-    .style('opacity', 0.3)
+    .style('opacity', 0.0)
 
   const dateDivs = dateContainer.selectAll('.dateDiv')
     .data(keyFrames)
@@ -748,7 +765,7 @@ async function getData() {
     .attr('id', (d, i) => i)
     .attr('height', 10)
     .attr('width', 20)
-    .style('margin', '50px')
+    .style('padding', '50px')
     .text(d => d.date)
 
   const steps = d3.selectAll('.step')
@@ -790,7 +807,8 @@ async function getData() {
     try {
       const prevCounties = prevKF.get(frame).counties;
       const timer = d3.timer(elapsed => {
-        const t = Math.min(1, d3.easeLinear(elapsed / duration));
+        // const t = Math.min(1, d3.easeLinear(elapsed / duration));
+        const t = Math.min(1, dateProgress);
         frame.counties.forEach((d, i) => {
           const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
           d.splice(3, 1, tweenCount);
@@ -1078,7 +1096,7 @@ async function getData() {
     },
     progress: function(el, progress) {
       dateProgress = progress
-      console.log('dateProgress', dateProgress)
+      // console.log('dateProgress', dateProgress)
     },
     exit: function(el) {
       // ...
