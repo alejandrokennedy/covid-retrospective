@@ -417,7 +417,7 @@ async function getData() {
 
     // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
     const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
-    const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
+    // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
   
     // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
     // const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
@@ -426,7 +426,7 @@ async function getData() {
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
   console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-  console.log('rawStatesUnfiltered', rawStatesUnfiltered)
+  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
 
   // //------------------------------------------------------
   // // MAP DATA
@@ -495,21 +495,22 @@ async function getData() {
 
   // // // COVID DATA TRANSFORMATIONS
 
-  const rawStates = rawStatesUnfiltered.filter(d => {
-    if (d.state === 'District of Columbia') d.state = 'D.C.'
-    return !excludedStates.includes(d.fips)
-  })
+  // const rawStates = rawStatesUnfiltered.filter(d => {
+  //   if (d.state === 'District of Columbia') d.state = 'D.C.'
+  //   return !excludedStates.includes(d.fips)
+  // })
 
   const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
   
-  const states = Array.from(d3.group(rawStates, d => d.state).keys())
+  // const states = Array.from(d3.group(rawStates, d => d.state).keys())
   const countyPositions = new Map(
     d3.groups(rawCounties, id)
     .map(([id, [d]]) => [id, position(d)])
     .filter(([, position]) => position)
   )
 
-  const dates = Array.from(d3.group(rawStates, d => d.date).keys())
+  // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
+  const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
 
   // //------------------------------------------------------
   // // POPULATION DATA
@@ -563,23 +564,23 @@ async function getData() {
   // //------------------------------------------------------
   // // FRAMES DATA
 
-  const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
+  // const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
   
   const frames = dates.map(date => ({
     date: date,
   
-    states: new Map(
-      states.map(state => [
-        state,
-        statesByPlace.get(state).get(date) || {
-          newCases: 0,
-          sma: 0,
-          smaRound: 0,
-          perHundThou: 0
-        }
-      ])
-    ),
+    // states: new Map(
+    //   states.map(state => [
+    //     state,
+    //     statesByPlace.get(state).get(date) || {
+    //       newCases: 0,
+    //       sma: 0,
+    //       smaRound: 0,
+    //       perHundThou: 0
+    //     }
+    //   ])
+    // ),
   
     counties: Array.from(countyPositions, ([key, value]) => key).map(county => [
       county,
@@ -658,92 +659,33 @@ async function getData() {
   // //------------------------------------------------------
   // // DATA: RANKING
   
-  function rank(value) {
-    const data = Array.from(states, state => ({ state, value: value(state) }));
-    data.sort((a, b) => {
-      const aVal = a.value ? a.value.smaRound : 0;
-      const bVal = b.value ? b.value.smaRound : 0;
-      return d3.descending(aVal, bVal);
-    });
-    for (let i = 0; i < data.length; ++i) data[i].rank = i;
-    return data;
-  }
+  // function rank(value) {
+  //   const data = Array.from(states, state => ({ state, value: value(state) }));
+  //   data.sort((a, b) => {
+  //     const aVal = a.value ? a.value.smaRound : 0;
+  //     const bVal = b.value ? b.value.smaRound : 0;
+  //     return d3.descending(aVal, bVal);
+  //   });
+  //   for (let i = 0; i < data.length; ++i) data[i].rank = i;
+  //   return data;
+  // }
 
-  const protoKeyFrames = frames.map(frame => {
-    frame.statesRanked = rank(state => frame.states.get(state));
-    return frame;
-  })
-  const keyFrames = protoKeyFrames
+  // const protoKeyFrames = frames.map(frame => {
+  //   frame.statesRanked = rank(state => frame.states.get(state));
+  //   return frame;
+  // })
+  // const keyFrames = protoKeyFrames
+
+  const keyFrames = frames
   const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
-  const nameFrames = d3.groups(keyFrames.flatMap(data => data.statesRanked), d => d.state)
-  prev = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])))
-  next = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data)))
+  
+  // const nameFrames = d3.groups(keyFrames.flatMap(data => data.statesRanked), d => d.state)
+  // prev = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])))
+  // next = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data)))
 
   // ------------------------------------------------------
   // DRAWING
   // //------------------------------------------------------
-  // // DRAWING: SCRUBBER
-    
-  // function Scrubber({
-  //   format = value => value,
-  //   initial = 0,
-  //   delay = null,
-  //   autoplay = false,
-  //   loop = true,
-  //   alternate = false
-  // } = {}) {
-  //   const form = d3.select('#scrubberForm').node()
-
-  //   let timer = null;
-  //   let direction = 1;
-  //   function start() {
-  //     form.b.textContent = "Pause";
-  //     timer = delay === null
-  //       ? requestAnimationFrame(tick)
-  //       : setInterval(tick, delay);
-  //   }
-  //   function stop() {
-  //     form.b.textContent = "Play";
-  //     if (delay === null) cancelAnimationFrame(timer);
-  //     else clearInterval(timer);
-  //     timer = null;
-  //   }
-  //   function tick() {
-  //     if (delay === null) timer = requestAnimationFrame(tick);
-  //     if (form.i.valueAsNumber === (direction > 0 ? keyFrames.length - 1 : direction < 0 ? 0 : NaN)) {
-  //       if (!loop) return stop();
-  //       if (alternate) direction = -direction;
-  //     }
-  //     form.i.valueAsNumber = (form.i.valueAsNumber + direction + keyFrames.length) % keyFrames.length;
-  //     form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
-  //   }
-  //   form.i.oninput = event => {
-  //     if (event && event.isTrusted && timer) form.b.onclick();
-  //     form.value = keyFrames[form.i.valueAsNumber];
-  //   };
-  //   form.b.onclick = () => {
-  //     if (timer) return stop();
-  //     direction = alternate && form.i.valueAsNumber === keyFrames.length - 1 ? -1 : 1;
-  //     form.i.valueAsNumber = (form.i.valueAsNumber + direction) % keyFrames.length;
-  //     form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
-  //     start();
-  //   };
-  //   form.i.oninput();
-  //   if (autoplay) start();
-  //   else stop();
-  //   return form;
-  // }
-
-  // const scrubber = Scrubber({
-  //   delay: duration,
-  //   loop: false
-  // })
-
-  // const scrubSelect = d3.select(scrubber)
-  //   .on('input', function() {
-  //     // scrub(this)
-  //     // scrub(this.value)
-  //   })
 
   d3.select('#scrubInput')
     .attr('max', keyFrames.length - 1)
@@ -858,125 +800,125 @@ async function getData() {
   // //------------------------------------------------------
   // // BARS: FUNCTIONS
 
-  const margin = { top: 10, right: 50, bottom: 0, left: 100 }
+  // const margin = { top: 10, right: 50, bottom: 0, left: 100 }
 
-  const x = d3.scaleLinear()
-    .domain([0, 1])
-    .range([margin.left, width - margin.right])
+  // const x = d3.scaleLinear()
+  //   .domain([0, 1])
+  //   .range([margin.left, width - margin.right])
 
-  const y = d3.scaleBand()
-    .domain(d3.range(states.length))
-    .rangeRound([margin.top, height - margin.top - margin.bottom])
-    .padding(0.1)
+  // const y = d3.scaleBand()
+  //   .domain(d3.range(states.length))
+  //   .rangeRound([margin.top, height - margin.top - margin.bottom])
+  //   .padding(0.1)
 
-  const xAxis = d3
-    .axisTop(x)
-    .tickSizeOuter(0)
-    .tickSizeInner(-height + margin.top + margin.bottom)
+  // const xAxis = d3
+  //   .axisTop(x)
+  //   .tickSizeOuter(0)
+  //   .tickSizeInner(-height + margin.top + margin.bottom)
 
-  const axis = svg => {
-    const g = svg.append('g').attr('transform', `translate(0,${margin.top})`);
+  // const axis = svg => {
+  //   const g = svg.append('g').attr('transform', `translate(0,${margin.top})`);
   
-    return (_, transition, largestBarVal) => {
-      const min = Math.floor(largestBarVal);
-      const max = width / 160;
-      xAxis.ticks(min > max ? max : min);
+  //   return (_, transition, largestBarVal) => {
+  //     const min = Math.floor(largestBarVal);
+  //     const max = width / 160;
+  //     xAxis.ticks(min > max ? max : min);
   
-      g.transition(transition).call(xAxis);
-      g.selectAll('.tick line').attr('stroke', 'white');
-      g.select('.domain').remove();
-    };
-  }
+  //     g.transition(transition).call(xAxis);
+  //     g.selectAll('.tick line').attr('stroke', 'white');
+  //     g.select('.domain').remove();
+  //   };
+  // }
 
-  const labels = svg => {
-    let label = svg
-      .append('g')
-      .style("font", "bold 12px var(--sans-serif)")
-      .style("font-variant-numeric", "tabular-nums")
-      .attr('text-anchor', 'end')
-      .selectAll('text');
+  // const labels = svg => {
+  //   let label = svg
+  //     .append('g')
+  //     .style("font", "bold 12px var(--sans-serif)")
+  //     .style("font-variant-numeric", "tabular-nums")
+  //     .attr('text-anchor', 'end')
+  //     .selectAll('text');
   
-    return (data, transition) =>
-      (label = label
-        .data(data.statesRanked, d => d.state)
-        .join(
-          enter =>
-            enter
-              .append('text')
-              // change
-              .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-              .attr('y', y.bandwidth() / 2)
-              .attr('x', -4)
-              .attr('dy', '0.25em')
-              // .attr('text-anchor', 'end')
-              .style('opacity', 0)
-              .text(d => d.state),
-          update => update,
-          exit => exit.transition(transition).remove()
-        )
-        .call(label =>
-          label
-            .transition(transition)
-            .attr(
-              'transform',
-              d =>
-                `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-            )
-            .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-        ));
-  }
+  //   return (data, transition) =>
+  //     (label = label
+  //       .data(data.statesRanked, d => d.state)
+  //       .join(
+  //         enter =>
+  //           enter
+  //             .append('text')
+  //             // change
+  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
+  //             .attr('y', y.bandwidth() / 2)
+  //             .attr('x', -4)
+  //             .attr('dy', '0.25em')
+  //             // .attr('text-anchor', 'end')
+  //             .style('opacity', 0)
+  //             .text(d => d.state),
+  //         update => update,
+  //         exit => exit.transition(transition).remove()
+  //       )
+  //       .call(label =>
+  //         label
+  //           .transition(transition)
+  //           .attr(
+  //             'transform',
+  //             d =>
+  //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
+  //           )
+  //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
+  //       ));
+  // }
 
-  const values = svg => {
-    let value = svg
-      .append('g')
-      .style("font", "12px var(--sans-serif)")
-      .style("font-variant-numeric", "tabular-nums")
-      .attr('text-anchor', 'start')
-      .selectAll('text');
+  // const values = svg => {
+  //   let value = svg
+  //     .append('g')
+  //     .style("font", "12px var(--sans-serif)")
+  //     .style("font-variant-numeric", "tabular-nums")
+  //     .attr('text-anchor', 'start')
+  //     .selectAll('text');
   
-    return (data, transition) =>
-      (value = value
-        .data(data.statesRanked, d => d.state)
-        .join(
-          enter =>
-            enter
-              .append('text')
-              // change
-              .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-              .attr('y', y.bandwidth() / 2)
-              .attr('x', 3)
-              .attr('dy', '0.25em')
-              .style('opacity', 0)
-              .text(d => (d.value ? d.value.smaRound : 0)),
-          update => update,
-          exit => exit.transition(transition).remove()
-        )
-        .call(value => {
-          return value
-            .transition(transition)
-            .attr(
-              'transform',
-              d =>
-                `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-            )
-            .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-            .tween('text', d => {
-              if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
-              return prev.get(d) && d.value
-                ? !prev.get(d).value
-                  ? textTween(0, d.value.smaRound)
-                  : textTween(prev.get(d).value.smaRound, d.value.smaRound)
-                : textTween(0, 0);
-            });
-        }));
-  }
+  //   return (data, transition) =>
+  //     (value = value
+  //       .data(data.statesRanked, d => d.state)
+  //       .join(
+  //         enter =>
+  //           enter
+  //             .append('text')
+  //             // change
+  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
+  //             .attr('y', y.bandwidth() / 2)
+  //             .attr('x', 3)
+  //             .attr('dy', '0.25em')
+  //             .style('opacity', 0)
+  //             .text(d => (d.value ? d.value.smaRound : 0)),
+  //         update => update,
+  //         exit => exit.transition(transition).remove()
+  //       )
+  //       .call(value => {
+  //         return value
+  //           .transition(transition)
+  //           .attr(
+  //             'transform',
+  //             d =>
+  //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
+  //           )
+  //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
+  //           .tween('text', d => {
+  //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
+  //             return prev.get(d) && d.value
+  //               ? !prev.get(d).value
+  //                 ? textTween(0, d.value.smaRound)
+  //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
+  //               : textTween(0, 0);
+  //           });
+  //       }));
+  // }
 
-  function textTween(a, b) {
-    const i = d3.interpolateNumber(a, b);
-    return function(t) {
-      this.textContent = formatNumber(i(t));
-    };
-  }
+  // function textTween(a, b) {
+  //   const i = d3.interpolateNumber(a, b);
+  //   return function(t) {
+  //     this.textContent = formatNumber(i(t));
+  //   };
+  // }
 
   const formatDate = d3.utcFormat("%B %d")
   const parseDate = d3.timeParse("%Y-%m-%d")
@@ -993,73 +935,73 @@ async function getData() {
     return keyframe => now.text(formatDate(parseDate(keyframe.date)))
   }
 
-  const formatNumber = d3.format(",d")
+  // const formatNumber = d3.format(",d")
 
-  const bars = svg => {
-    let bar = svg
-      .append('g')
-      .attr('fill-opacity', 0.4)
-      .selectAll('rect');
+  // const bars = svg => {
+  //   let bar = svg
+  //     .append('g')
+  //     .attr('fill-opacity', 0.4)
+  //     .selectAll('rect');
   
-    return (data, transition) => {
-      return (bar = bar
-        .data(data.statesRanked, d => d.state)
-        .join(
-          enter =>
-            enter
-              .append("rect")
-              // .attr("fill", color)
-              .attr("height", y.bandwidth())
-              .attr("x", x(0))
-              // .attr("y", d => y((prev.get(d) || d).rank))
-              .attr("y", d => y.range()[1])
-              .attr("width", d => x((prev.get(d) || d).value.smaRound) - x(0)),
-          update => update,
-          exit =>
-            exit
-              .transition(transition)
-              .remove()
-              // .attr("y", d => y((next.get(d) || d).rank))
-              .attr("y", d => y(d.rank))
-              // .attr("width", d => x((next.get(d) || d).value) - x(0))
-              .attr("width", d => x(d.value - x(0)))
-        )
-        .call(bar =>
-          bar
-            .transition(transition)
-            .attr("y", d => y(d.rank))
-            .attr("width", d => (d.value ? x(d.value.smaRound) - x(0) : 0))
-            .attr('fill', d => color(d.value.perHundThou))
-        ));
-    };
-  }
+  //   return (data, transition) => {
+  //     return (bar = bar
+  //       .data(data.statesRanked, d => d.state)
+  //       .join(
+  //         enter =>
+  //           enter
+  //             .append("rect")
+  //             // .attr("fill", color)
+  //             .attr("height", y.bandwidth())
+  //             .attr("x", x(0))
+  //             // .attr("y", d => y((prev.get(d) || d).rank))
+  //             .attr("y", d => y.range()[1])
+  //             .attr("width", d => x((prev.get(d) || d).value.smaRound) - x(0)),
+  //         update => update,
+  //         exit =>
+  //           exit
+  //             .transition(transition)
+  //             .remove()
+  //             // .attr("y", d => y((next.get(d) || d).rank))
+  //             .attr("y", d => y(d.rank))
+  //             // .attr("width", d => x((next.get(d) || d).value) - x(0))
+  //             .attr("width", d => x(d.value - x(0)))
+  //       )
+  //       .call(bar =>
+  //         bar
+  //           .transition(transition)
+  //           .attr("y", d => y(d.rank))
+  //           .attr("width", d => (d.value ? x(d.value.smaRound) - x(0) : 0))
+  //           .attr('fill', d => color(d.value.perHundThou))
+  //       ));
+  //   };
+  // }
 
   // //------------------------------------------------------
   // // BARS: DRAWING THINGS
 
-  const updateBars = bars(chartSvg);
-  const updateAxis = axis(chartSvg);
-  const updateLabels = labels(chartSvg);
-  const updateValues = values(chartSvg);
+  // const updateBars = bars(chartSvg);
+  // const updateAxis = axis(chartSvg);
+  // const updateLabels = labels(chartSvg);
+  // const updateValues = values(chartSvg);
   const updateTicker = ticker(mapSvg);
 
   function scrub(keyframe) {
-    const transition = chartSvg.transition()
-      // .duration(duration)
-      .duration((d, i) => {
-        console.log('d', d)
-        console.log('i', i)
-        return duration
-      })
-      .ease(d3.easeLinear)
+    // const transition = chartSvg.transition()
+    //   // .duration(duration)
+    //   .duration((d, i) => {
+    //     console.log('d', d)
+    //     console.log('i', i)
+    //     return duration
+    //   })
+    //   .ease(d3.easeLinear)
 
-    const largestBarVal = d3.max([keyframe.statesRanked[0].value.smaRound, 1]);
-    x.domain([0, largestBarVal]);
+    // const largestBarVal = d3.max([keyframe.statesRanked[0].value.smaRound, 1]);
+    // x.domain([0, largestBarVal]);
 
-    updateAxis(keyframe, transition, largestBarVal);
-    updateBars(keyframe, transition);
-    updateLabels(keyframe, transition);
-    updateValues(keyframe, transition);
+    // updateAxis(keyframe, transition, largestBarVal);
+    // updateBars(keyframe, transition);
+    // updateLabels(keyframe, transition);
+    // updateValues(keyframe, transition);
     updateTicker(keyframe);
 
     update(keyframe)
