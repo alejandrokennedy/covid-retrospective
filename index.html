@@ -4,19 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>covid-animation</title>
-  <script src='https://unpkg.com/d3@6.2.0/dist/d3.min.js'></script>
-  <script src='https://unpkg.com/topojson@3.0.2/dist/topojson.js'></script>
   <link rel="stylesheet" href="./main.css">
 
-	<!--  -->
+	<!-- FONTS -->
 	<link rel="preload" as="font" href="./Palatino.woff" type="font/woff2" crossorigin="anonymous">
 	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="preload" as="font" crossorigin="anonymous">>
-	
-	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
 	<link rel="preconnect" href="https://fonts.gstatic.com">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
 
-	<script src="https://unpkg.com/enter-view"></script>
+	<!-- LIBS -->
+	<!-- <script src='https://unpkg.com/topojson@3.0.2/dist/topojson.js'></script>
+	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
+	<script src="https://unpkg.com/enter-view"></script> -->
+	
+	<!-- OFFLINE LIBS -->
+	<script src='./libs/topojson.js'></script>
+	<script src="./libs/d3.js"></script>
+	<script src="./libs/detect.js"></script>
+	<script src="./libs/enter-view.js"></script>
+
+
+
 	<!--  -->
 	
 	<style>
@@ -129,9 +137,9 @@
 		}
 
 		.lefty {
-			/* width: 33vw; */
-			width: 43vw;
-			margin-left: 5vw;
+			width: 33vw;
+			/* margin-left: 5vw; */
+			margin-left: 3vw;
 		}
 
 		.righty {
@@ -165,7 +173,8 @@
 		}
 
 		.step div {
-			padding: 25px 50px;
+			/* padding: 25px 50px; */
+			padding: 25px 35px;
 			line-height: 25px;
 			font-size: 18px;
 			line-height: 1.6;
@@ -222,31 +231,15 @@
   <!-- <div id="viz-container" style="display: sticky; top: 0px"> -->
   <div id="viz-container" style="position: fixed; top: 0">
     <div id="container">
+			<div id="desktop-spacer"></div>
       <div id="mapAndControls" style="display: sticky; top: 0px">
       <!-- <div id="mapAndControls"> -->
         <div id="map-container"></div>
         <div id="legendContainer">
           <div id="colorContainer"></div>
-          <div id="dateCounter">
-
-            <!-- <form id="scrubberForm" style="font: 12px var(--sans-serif); font-variant-numeric: tabular-nums; display: flex; height: 20px; align-items: center;">
-              <button name=b id="playBTN" type=button style="width: 5em;"></button>
-              <label style="display: grid; align-items: center;">
-                <input id="scrubInput" name=i type=range min=0 max=5 value=0 step=1>
-              </label>
-            </form> -->
-
-            <!-- <div id="select-dropdown">
-              <label for="sort-select">Sort by:</label>
-              <select name="sort" id="sort-select">
-                  <option value="cases">Cases</option>
-                  <option value="perc">Per Capita??</option>
-              </select>
-            </div>   -->
-          </div>
+          <!-- <div id="dateCounter"></div> -->
         </div>
-    </div>
-      <div id="chart-container"></div>
+    	</div>
     </div>
   </div>
 	<div id="story"></div>

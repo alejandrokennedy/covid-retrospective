@@ -7,7 +7,6 @@ const opacity = 0.7
 const avgNum = 14
 const duration = 225
 const excludedStates = ["66", "69", "72", "78"]
-let dateProgress = 0
 
 // //------------------------------------------------------
 // // PAGE SETUP
@@ -22,9 +21,9 @@ const container = d3.select('#container')
   .style('position', 'relative')
   .style('margin', '0 auto')
 
-const legendContainer = d3.select('#legendContainer')
-  .style('display', 'flex')
-  .style('flex-direction', 'row')
+// const legendContainer = d3.select('#legendContainer')
+//   .style('display', 'flex')
+//   .style('flex-direction', 'row')
 
 
 // //------------------------------------------------------
@@ -40,7 +39,7 @@ let mapHeight = macBounds.height - 60
 const justMapHeight = mapWidth / 1.6
 const mapMarginTop = macBounds.height - 50 - justMapHeight
 const mapMargin = {top: mapMarginTop, right: 0, bottom: 0, left: 0}
-const spikeMax = mapMargin.top + 210
+const spikeMax = d3.min([mapMargin.top + 210, justMapHeight * 1.4])
 const spikeWidth = mapWidth / 90
 
 
@@ -106,16 +105,16 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
 // //------------------------------------------------------
 // // CHART SVG SETUP
 
-const chartContainer = d3.select('#chart-container')
-const chartContainerBounds = chartContainer.node().getBoundingClientRect()
-const width = chartContainerBounds.width
-const height = 900
-const chartSvg = chartContainer.append('svg')
-  .attr('id', 'chartSvg')
-  // .attr('viewBox', `0 0 ${width} ${height}`)
-  .attr('width', width)
-  .attr('height', height)
-  .style('margin', '10 0 0 0')
+// const chartContainer = d3.select('#chart-container')
+// const chartContainerBounds = chartContainer.node().getBoundingClientRect()
+// const width = chartContainerBounds.width
+// const height = 900
+// const chartSvg = chartContainer.append('svg')
+//   .attr('id', 'chartSvg')
+//   // .attr('viewBox', `0 0 ${width} ${height}`)
+//   .attr('width', width)
+//   .attr('height', height)
+//   .style('margin', '10 0 0 0')
 
 // //------------------------------------------------------
 // // COLOR LEGEND SETUP
@@ -276,8 +275,11 @@ function ramp(color, n = 256) {
 // DATA
 
 async function getData() {
-  const csv = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  const chapters = csv.map((d, i) => {
+  // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  
+  const storyData = await d3.json('./data/story.json')
+
+  const chapters = storyData.map((d, i) => {
     return {
     id: i,
     title: d.title,
@@ -425,7 +427,7 @@ async function getData() {
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
-  console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
+  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
 
   // //------------------------------------------------------
@@ -593,14 +595,23 @@ async function getData() {
     ])
   }))
   
-  const maxDailyCasesCounties = getMaxDailyCasesCounties()
+  const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
+  const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   function getMaxDailyCasesCounties() {
     let max = 0;
+    let theDate
+    const obj = {}
     for (let date of frames) {
       const maxOfDay = d3.max(date.counties.map(d => d[1]));
-      if (maxOfDay > max) max = maxOfDay;
+      if (maxOfDay > max) {
+        max = maxOfDay
+        theDate = date.date
+      };
     }
-    return max;
+    obj.max = max
+    obj.date = theDate
+    // return max;
+    return obj;
   }
 
   // console.log('maxDailyCasesCounties', maxDailyCasesCounties)
@@ -635,7 +646,7 @@ async function getData() {
   }
 
   console.log('maxPerHundThouCounties', maxPerHundThouCounties)
-  console.log('maxDailyCasesCounties', maxDailyCasesCounties)
+  console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
 
   const length = d3.scaleLinear()
     .domain([0, maxDailyCasesCounties])
@@ -745,19 +756,32 @@ async function getData() {
     });
   }
 
-  const update = frame => {
+  // const update = frame => {
+  //   try {
+  //     const prevCounties = prevKF.get(frame).counties;
+  //     const timer = d3.timer(elapsed => {
+  //       const t = Math.min(1, d3.easeLinear(elapsed / duration));
+  //       // const t = Math.min(1, dateProgress);
+  //       frame.counties.forEach((d, i) => {
+  //         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+  //         d.splice(3, 1, tweenCount);
+  //       });
+  //       draw(frame);
+  //       if (t === 1) timer.stop();
+  //     });
+  //   } catch {
+  //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
+  //   }
+  // }
+
+  const updateSpikes = (frame, t) => {
     try {
-      const prevCounties = prevKF.get(frame).counties;
-      const timer = d3.timer(elapsed => {
-        // const t = Math.min(1, d3.easeLinear(elapsed / duration));
-        const t = Math.min(1, dateProgress);
-        frame.counties.forEach((d, i) => {
-          const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-          d.splice(3, 1, tweenCount);
-        });
-        draw(frame);
-        if (t === 1) timer.stop();
+      const prevCounties = prevKF.get(frame).counties || frame.counties
+      frame.counties.forEach((d, i) => {
+        const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+        d.splice(3, 1, tweenCount);
       });
+      draw(frame);
     } catch {
       frame.counties.forEach(d => d.splice(3, 1, d[1]));
     }
@@ -920,17 +944,19 @@ async function getData() {
   //   };
   // }
 
-  const formatDate = d3.utcFormat("%B %d")
+  const formatDate = d3.utcFormat("%B %d, %Y")
   const parseDate = d3.timeParse("%Y-%m-%d")
 
   const ticker = svg => {
     const now = svg.append('g').append("text")
-        .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
+        // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
+        .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
         .style("font", `bold ${10}px var(--sans-serif)`)
         .style("font-variant-numeric", "tabular-nums")
         .style("text-anchor", "middle")
         .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-        .text(formatDate(parseDate(keyFrames[0].date)));
+        // .text(formatDate(parseDate(keyFrames[0].date)));
+        .text('');
 
     return keyframe => now.text(formatDate(parseDate(keyframe.date)))
   }
@@ -1004,7 +1030,8 @@ async function getData() {
     // updateValues(keyframe, transition);
     updateTicker(keyframe);
 
-    update(keyframe)
+    // update(keyframe)
+    // updateSpikes(keyframe)
   }
 
   enterView({
@@ -1037,11 +1064,10 @@ async function getData() {
       scrub(keyFrames[Number(el.id)])
     },
     progress: function(el, progress) {
-      dateProgress = progress
-      // console.log('dateProgress', dateProgress)
+      updateSpikes(keyFrames[Number(el.id)], progress)
     },
     exit: function(el) {
-      // ...
+      scrub(keyFrames[Number(el.id - 1)])
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
