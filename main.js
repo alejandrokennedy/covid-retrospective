@@ -275,9 +275,9 @@ function ramp(color, n = 256) {
 // DATA
 
 async function getData() {
-  // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
   
-  const storyData = await d3.json('./data/story.json')
+  // const storyData = await d3.json('./data/story.json')
 
   const chapters = storyData.map((d, i) => {
     return {
@@ -418,10 +418,10 @@ async function getData() {
 
 
     // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
-    const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
+    // const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
     // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
   
-    // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+    const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
     // const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
   
   const statePop = await d3.csv('./data/statePop.csv')
