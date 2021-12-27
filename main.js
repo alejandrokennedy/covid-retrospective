@@ -295,6 +295,8 @@ async function getData() {
   })
   config.chapters = chapters
 
+  console.log('chapters', chapters)
+
   ///////////////////// CHAPTERS vvv
 
 
@@ -374,6 +376,11 @@ async function getData() {
 				container.classList.add('step');
 				if (idx === 0) {
 					container.classList.add('active-chapter');
+					container.classList.add('opening-title');
+				}
+				if (idx === 1) {
+          container.classList.add('intro')
+          d3.select(container).style('opacity', 0.99)
 				}
 
 				chapter.classList.add(config.theme);
@@ -708,7 +715,18 @@ async function getData() {
     .append('div')
     .attr('id', 'dateContainer')
     .style('position', 'absolute')
-    .style('top', window.innerHeight)
+    // .style('top', window.innerHeight)
+    .style('top', d => {
+      const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
+      const introBounds = d3.select('.intro').node().getBoundingClientRect()
+      // const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      console.log('introBounds', introBounds)
+      console.log('openingTitleBounds', openingTitleBounds)
+      // console.log('give top:', introBounds.top + introBounds.height + scrollTop)
+
+      return openingTitleBounds.height + introBounds.height
+      // return introBounds.top + introBounds.height + scrollTop
+    })
     .style('opacity', 0.0)
 
   const dateDivs = dateContainer.selectAll('.dateDiv')
@@ -724,9 +742,9 @@ async function getData() {
   const steps = d3.selectAll('.step')
     .data(chapters)
     .call(div => {
-      div.filter(d => d.id != 0)
+      div.filter(d => d.id != 0 && d.id != 1)
         .style('position', 'absolute')
-        .style('top', (d, i) => {
+        .style('top', d => {
           const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
           if (div) return `${div.getBoundingClientRect().top}px`
           return '24998px'
@@ -958,7 +976,7 @@ async function getData() {
         // .text(formatDate(parseDate(keyFrames[0].date)));
         .text('');
 
-    return keyframe => now.text(formatDate(parseDate(keyframe.date)))
+    return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
 
   // const formatNumber = d3.format(",d")
