@@ -281,21 +281,19 @@ async function getData() {
 
   const chapters = storyData.map((d, i) => {
     return {
-    id: i,
-    title: d.title,
-    headline: d.headline,
-    image: d.photoUrl,
-    alignment: d.alignment,
-    description: d.content,
-    date: d.date
-    // onChapterEnter: layerFormat(d.onLayerEnter),
-    // onChapterExit: layerFormat(d.onLayerExit),
-    // onChapterEnter: Object.entries(d).splice(17).map(d => ({ "layer": d[0], "opacity": !d[1] ? 0 : Number(d[1])}))
-  }
+      id: i,
+      title: d.title,
+      headline: d.headline,
+      image: d.photoUrl,
+      alignment: d.alignment,
+      description: d.content,
+      date: d.date
+      // onChapterEnter: layerFormat(d.onLayerEnter),
+      // onChapterExit: layerFormat(d.onLayerExit),
+      // onChapterEnter: Object.entries(d).splice(17).map(d => ({ "layer": d[0], "opacity": !d[1] ? 0 : Number(d[1])}))
+    }
   })
   config.chapters = chapters
-
-  console.log('chapters', chapters)
 
   ///////////////////// CHAPTERS vvv
 
@@ -715,19 +713,13 @@ async function getData() {
     .append('div')
     .attr('id', 'dateContainer')
     .style('position', 'absolute')
-    // .style('top', window.innerHeight)
     .style('top', d => {
       const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
-      // const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-      console.log('introBounds', introBounds)
-      console.log('openingTitleBounds', openingTitleBounds)
-      // console.log('give top:', introBounds.top + introBounds.height + scrollTop)
-
+      console.log('dateContainerTop', openingTitleBounds.height + introBounds.height)
       return openingTitleBounds.height + introBounds.height
-      // return introBounds.top + introBounds.height + scrollTop
     })
-    .style('opacity', 0.0)
+    .style('opacity', 0.5)
 
   const dateDivs = dateContainer.selectAll('.dateDiv')
     .data(keyFrames)
@@ -746,8 +738,8 @@ async function getData() {
         .style('position', 'absolute')
         .style('top', d => {
           const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
-          if (div) return `${div.getBoundingClientRect().top}px`
-          return '24998px'
+          if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
+          return '50000px'
         })
     })
 
