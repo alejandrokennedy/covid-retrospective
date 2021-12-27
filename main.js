@@ -719,7 +719,7 @@ async function getData() {
       console.log('dateContainerTop', openingTitleBounds.height + introBounds.height)
       return openingTitleBounds.height + introBounds.height
     })
-    .style('opacity', 0.5)
+    .style('opacity', 0.0)
 
   const dateDivs = dateContainer.selectAll('.dateDiv')
     .data(keyFrames)
