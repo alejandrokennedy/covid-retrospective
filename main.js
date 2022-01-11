@@ -397,7 +397,7 @@ async function getData() {
 			if (config.footer) {
 				const footerText = document.createElement('p');
 				footerText.innerHTML = config.footer;
-				footer.appendChild(footerText).setAttribute('style', 'padding-right: 40px; padding-left: 40px;');
+				footer.appendChild(footerText).setAttribute('style', 'padding-right: 40px; padding-left: 40px; padding-top: 500px;');
 			}
 
 			if (footer.innerText.length > 0) {
@@ -602,52 +602,31 @@ async function getData() {
   
   const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
   const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+  const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
   function getMaxDailyCasesCounties() {
-    let max = 0;
+    let max = 0
     let theDate
+    let perCapita = 0
+    let perCapitaDate
     const obj = {}
     for (let date of frames) {
       const maxOfDay = d3.max(date.counties.map(d => d[1]));
       if (maxOfDay > max) {
         max = maxOfDay
         theDate = date.date
-      };
+      }
+
+      const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
+      if (maxPerCapitaOfDay > perCapita) {
+        perCapita = maxPerCapitaOfDay
+        perCapitaDate = date.date
+      }
     }
     obj.max = max
-    obj.date = theDate
-    // return max;
-    return obj;
-  }
-
-  // console.log('maxDailyCasesCounties', maxDailyCasesCounties)
-
-  const maxPerHundThouCounties = getMaxPerHundThouCounties()
-  function getMaxPerHundThouCounties() {
-    let max = 0;
-    for (let date of frames) {
-      const maxOfDay = d3.max(date.counties.map(d => d[2]));
-      if (maxOfDay > max) max = maxOfDay;
-      // if (maxOfDay > 250)
-        // console.log(
-        //   // date.date,
-        //   // 'county: ' +
-        //   //   date.counties[d3.maxIndex(date.counties.map(d => d[2]))][0],
-        //   // 'state: ' +
-        //   // fipsToStateLookup.get(
-        //   //   date.counties[d3.maxIndex(date.counties.map(d => d[2]))][0].slice(
-        //   //     0,
-        //   //     2
-        //   //   )
-        //   // ),
-        //   // 'cases: ' + date.counties[d3.maxIndex(date.counties.map(d => d[2]))][1],
-        //   // 'pop: ' +
-        //   countiesPop.get(
-        //     date.counties[d3.maxIndex(date.counties.map(d => d[2]))][0]
-        //   )
-        //   // maxOfDay
-        // );
-    }
-    return max;
+    obj.maxDate = theDate
+    obj.perCapita = perCapita
+    obj.perCapitaDate = perCapitaDate
+    return obj
   }
 
   console.log('maxPerHundThouCounties', maxPerHundThouCounties)
@@ -658,13 +637,62 @@ async function getData() {
     .range([0, spikeMax])
 
   const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
   const color = d3.scaleSequential(interpolator)
     .domain([0, maxPerHundThouCounties])
     .clamp(true)
     .nice()
 
+  const lengthOfInterest = length.invert(spikeWidth / 2)
+  
+  function findLegendMax() {
+    let i = 550
+    let arr = testMaxes(i)
+
+    if (arr.length === 0) {
+      while (arr.length === 0) {
+        i -= 10
+        arr = testMaxes(i)
+      }
+      return i
+    }
+    
+    while (arr.length > 0) {
+      i += 10
+      arr = testMaxes(i)
+    }
+    return i
+  }
+
+  function testMaxes(num) {
+    let arr = []
+    for (let date of frames) {
+      date.counties.forEach(d => {
+        if (d[2] > num && d[1] > lengthOfInterest) {
+          return arr.push(d)
+        }
+      })
+    }
+    return arr;
+  }
+
+  const legendMax = findLegendMax()
+  const maxColor = color(legendMax)
+
+  const intoThirds = Math.round(legendMax / 3)
+  const maxMinusThird = color(legendMax - intoThirds)
+  const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
+
+  const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
+  const legendColor = d3.scaleSequential(legendInterpolator)
+    .domain([0, legendMax])
+    .clamp(true)
+    .nice()
+
+
   legend({
-    color: color,
+    // color: color,
+    color: legendColor,
     title: "New Cases Per 100,000 People",
     // title: "New Cases Per 10,000 People",
     width: mapWidth / 1.8,
@@ -703,9 +731,9 @@ async function getData() {
   // DRAWING
   // //------------------------------------------------------
 
-  d3.select('#scrubInput')
-    .attr('max', keyFrames.length - 1)
-    .style('width', () => `${mapWidth / 4}px`)
+  // d3.select('#scrubInput')
+  //   .attr('max', keyFrames.length - 1)
+  //   .style('width', () => `${mapWidth / 4}px`)
 
   // // DRAWING: DATE DIVS
   
@@ -716,7 +744,6 @@ async function getData() {
     .style('top', d => {
       const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
-      console.log('dateContainerTop', openingTitleBounds.height + introBounds.height)
       return openingTitleBounds.height + introBounds.height
     })
     .style('opacity', 0.0)
@@ -745,7 +772,14 @@ async function getData() {
 
   d3.select('#footer')
     .style('position', 'absolute')
-    .style('top', '12998px')
+    .style('top', d => {
+      console.log('dateDivs.nodes().length', dateDivs.nodes().length)
+      console.log('dateDivs.nodes().length - 1', dateDivs.nodes().length - 1)
+      console.log('dateDivs.nodes()[dateDivs.nodes().length - 1]', dateDivs.nodes()[dateDivs.nodes().length - 1])
+      const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
+      return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
+      // return `${window.pageYOffset + div.getBoundingClientRect().top}px`
+    })
 
 
   // //------------------------------------------------------
