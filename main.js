@@ -7,6 +7,7 @@ const opacity = 0.7
 const avgNum = 14
 const duration = 225
 const excludedStates = ["66", "69", "72", "78"]
+const mapFill = '#f8f8f8'
 
 // //------------------------------------------------------
 // // PAGE SETUP
@@ -141,7 +142,8 @@ function legend({
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
     .style("overflow", "visible")
-    .style("display", "block");
+    .style("display", "block")
+    .attr("class", "colorLegend hidden")
 
   let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
   let x;
@@ -414,21 +416,24 @@ async function getData() {
   const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
   const path = d3.geoPath().projection(projection)
 
-  mapSvg.append('path')
-    .datum(topojson.mesh(us, us.objects.states))
+  mapSvg.append('g')
+    .attr('class', 'states')
+    .selectAll('path')
+   .data(usStates.features)
+    .enter().append('path')
     .attr('stroke', '#aaa')
-    .attr('fill', 'none')
+    .attr('fill', mapFill)
+    .attr('class', d => `stateShape f${d.id} hidden`)
     .attr('d', path)
-    .attr('stroke-linejoin', 'round');
 
 
-    // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
-    // const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
-    // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
-  
-    const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-    // const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
-  
+  // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
+  // const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
+  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
+
+  const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+  const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
@@ -502,14 +507,14 @@ async function getData() {
 
   // // // COVID DATA TRANSFORMATIONS
 
-  // const rawStates = rawStatesUnfiltered.filter(d => {
-  //   if (d.state === 'District of Columbia') d.state = 'D.C.'
-  //   return !excludedStates.includes(d.fips)
-  // })
+  const rawStates = rawStatesUnfiltered.filter(d => {
+    if (d.state === 'District of Columbia') d.state = 'D.C.'
+    return !excludedStates.includes(d.fips)
+  })
 
   const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
   
-  // const states = Array.from(d3.group(rawStates, d => d.state).keys())
+  const statesList = Array.from(d3.group(rawStates, d => d.state).keys())
   const countyPositions = new Map(
     d3.groups(rawCounties, id)
     .map(([id, [d]]) => [id, position(d)])
@@ -518,6 +523,15 @@ async function getData() {
 
   // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
   const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
+
+  const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
+
+  const fipsLookup = {}
+  d3.groups(rawStates, d => d.state, d => d.fips)
+    .map(x => { return {[x[0]]: x[1][0][0]} })
+    .forEach(d => {
+      fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
+    })
 
   // //------------------------------------------------------
   // // POPULATION DATA
@@ -571,14 +585,21 @@ async function getData() {
   // //------------------------------------------------------
   // // FRAMES DATA
 
-  // const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
+  const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
-  
+
+  let statesMap = new Map(
+    statesList.map(state => [
+      state,
+      0
+    ])
+  )
+
   const frames = dates.map(date => ({
     date: date,
   
     // states: new Map(
-    //   states.map(state => [
+    //   statesList.map(state => [
     //     state,
     //     statesByPlace.get(state).get(date) || {
     //       newCases: 0,
@@ -588,6 +609,15 @@ async function getData() {
     //     }
     //   ])
     // ),
+
+    statesCasesStarted: new Map(statesList.map(state => {
+      const obj = statesByPlace.get(state).get(date)
+      if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
+      return [
+        state,
+        statesMap.get(state)
+      ]
+    })),
   
     counties: Array.from(countyPositions, ([key, value]) => key).map(county => [
       county,
@@ -599,7 +629,7 @@ async function getData() {
         : 0
     ])
   }))
-  
+
   const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
   const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
@@ -736,7 +766,7 @@ async function getData() {
   //   .style('width', () => `${mapWidth / 4}px`)
 
   // // DRAWING: DATE DIVS
-  
+
   const dateContainer = d3.select('#story')
     .append('div')
     .attr('id', 'dateContainer')
@@ -744,7 +774,7 @@ async function getData() {
     .style('top', d => {
       const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
-      return openingTitleBounds.height + introBounds.height
+      return `${openingTitleBounds.height + introBounds.height}px`
     })
     .style('opacity', 0.0)
 
@@ -756,9 +786,10 @@ async function getData() {
     .attr('height', 10)
     .attr('width', 20)
     .style('padding', '50px')
+    // .style('border-top', '1px solid green')
     .text(d => d.date)
 
-  const steps = d3.selectAll('.step')
+  d3.selectAll('.step')
     .data(chapters)
     .call(div => {
       div.filter(d => d.id != 0 && d.id != 1)
@@ -766,19 +797,14 @@ async function getData() {
         .style('top', d => {
           const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
           if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
-          return '50000px'
         })
     })
 
   d3.select('#footer')
     .style('position', 'absolute')
     .style('top', d => {
-      console.log('dateDivs.nodes().length', dateDivs.nodes().length)
-      console.log('dateDivs.nodes().length - 1', dateDivs.nodes().length - 1)
-      console.log('dateDivs.nodes()[dateDivs.nodes().length - 1]', dateDivs.nodes()[dateDivs.nodes().length - 1])
       const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
       return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
-      // return `${window.pageYOffset + div.getBoundingClientRect().top}px`
     })
 
 
@@ -837,9 +863,9 @@ async function getData() {
   const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
 
   const spikeLegend = mapSvg.append('g')
-    .attr('class', 'spikeLegend')
+    .attr('class', 'spikeLegend hidden')
     .attr('text-anchor', 'middle')
-    .attr('font-size', 10)
+    .attr('font-size', 9)
 
   const spikeLegendGs = spikeLegend.selectAll('g')
     .data(length.ticks(4).slice(1).reverse())
@@ -1005,6 +1031,38 @@ async function getData() {
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
 
+  const stateShapes = svg => {
+    return keyframe => {
+      if (keyframe !== undefined) {
+        d3.select('.colorLegend').classed('hidden', false)
+        d3.select('.spikeLegend').classed('hidden', false)
+        
+        keyframe.statesCasesStarted.forEach((val, key) => {
+          if (val) {
+            d3.select(`.f${fipsLookup[key]}.hidden`)
+              .classed('hidden', false)
+              .raise()
+              .attr('stroke', 'black')
+              .attr('fill', '#e8e8e8')
+              .transition().duration(750)
+              .attr('stroke', '#aaa')
+              .attr('fill', mapFill)
+
+          } else {
+            d3.select(`.f${fipsLookup[key]}`)
+              .classed('hidden', true)
+              .attr('stroke', 'none')
+              .attr('fill', 'none')
+          }
+        })
+      } else {
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.select('.colorLegend').classed('hidden', true)
+      }
+    }
+  }
+
   // const formatNumber = d3.format(",d")
 
   // const bars = svg => {
@@ -1053,7 +1111,8 @@ async function getData() {
   // const updateAxis = axis(chartSvg);
   // const updateLabels = labels(chartSvg);
   // const updateValues = values(chartSvg);
-  const updateTicker = ticker(mapSvg);
+  const updateTicker = ticker(mapSvg)
+  const updateStateShapes = stateShapes(mapSvg)
 
   function scrub(keyframe) {
     // const transition = chartSvg.transition()
@@ -1073,6 +1132,7 @@ async function getData() {
     // updateLabels(keyframe, transition);
     // updateValues(keyframe, transition);
     updateTicker(keyframe);
+    updateStateShapes(keyframe)
 
     // update(keyframe)
     // updateSpikes(keyframe)
