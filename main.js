@@ -9,6 +9,9 @@ const duration = 225
 const excludedStates = ["66", "69", "72", "78"]
 const mapFill = '#f8f8f8'
 
+const formatDate = d3.utcFormat("%B %d, %Y")
+const parseDate = d3.timeParse("%Y-%m-%d")
+
 // //------------------------------------------------------
 // // PAGE SETUP
 
@@ -35,12 +38,13 @@ const mapContainer = d3.select('#map-container')
 const macBounds = d3.select('#mapAndControls').node().getBoundingClientRect()
 
 let mapWidth = macBounds.width
-let mapHeight = macBounds.height - 60
+let mapHeight = macBounds.height
 
 const justMapHeight = mapWidth / 1.6
 const mapMarginTop = macBounds.height - 50 - justMapHeight
 const mapMargin = {top: mapMarginTop, right: 0, bottom: 0, left: 0}
-const spikeMax = d3.min([mapMargin.top + 210, justMapHeight * 1.4])
+// const spikeMax = d3.min([mapMargin.top + 210, justMapHeight * 1.4])
+const spikeMax = macBounds.height
 const spikeWidth = mapWidth / 90
 
 
@@ -120,13 +124,14 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
 // //------------------------------------------------------
 // // COLOR LEGEND SETUP
 
-const colorContainer = d3.select('#colorContainer')
+const colorLegendWidth = d3.min([mapWidth / 4, 320])
+const colorLegendOffset = mapWidth - colorLegendWidth
 
 function legend({
   color,
   title,
   tickSize = 6,
-  width = 320,
+  width = colorLegendWidth,
   height = 44 + tickSize,
   marginTop = 18,
   marginRight = 0,
@@ -137,13 +142,17 @@ function legend({
   tickValues
 } = {}) {
 
-  const svg = colorContainer.append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .style("overflow", "visible")
-    .style("display", "block")
-    .attr("class", "colorLegend hidden")
+  // const svg = colorContainer.append("svg")
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .attr("viewBox", [0, 0, width, height])
+  //   .style("overflow", "visible")
+  //   .style("display", "block")
+  //   .attr("class", "colorLegend hidden")
+
+  const colorLegendG = mapSvg.append('g')
+    .attr('transform', `translate(${colorLegendOffset}, 0)`)
+    .attr('class', 'colorLegend hidden')
 
   let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
   let x;
@@ -154,7 +163,7 @@ function legend({
 
     x = color.copy().rangeRound(d3.quantize(d3.interpolate(marginLeft, width - marginRight), n));
 
-    svg.append("image")
+    colorLegendG.append("image")
       .attr("x", marginLeft)
       .attr("y", marginTop)
       .attr("width", width - marginLeft - marginRight)
@@ -169,7 +178,7 @@ function legend({
         .interpolator(d3.interpolateRound(marginLeft, width - marginRight)),
         {range() { return [marginLeft, width - marginRight]; }});
 
-    svg.append("image")
+    colorLegendG.append("image")
       .attr("x", marginLeft)
       .attr("y", marginTop)
       .attr("width", width - marginLeft - marginRight)
@@ -206,7 +215,7 @@ function legend({
         .domain([-1, color.range().length - 1])
         .rangeRound([marginLeft, width - marginRight]);
 
-    svg.append("g")
+    colorLegendG.append("g")
       .selectAll("rect")
       .data(color.range())
       .join("rect")
@@ -226,7 +235,7 @@ function legend({
         .domain(color.domain())
         .rangeRound([marginLeft, width - marginRight]);
 
-    svg.append("g")
+    colorLegendG.append("g")
       .selectAll("rect")
       .data(color.domain())
       .join("rect")
@@ -239,7 +248,7 @@ function legend({
     tickAdjust = () => {};
   }
 
-  svg.append("g")
+  colorLegendG.append("g")
     .attr("transform", `translate(0,${height - marginBottom})`)
     .call(d3.axisBottom(x)
       .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined)
@@ -256,7 +265,7 @@ function legend({
       .attr("font-weight", "bold")
       .text(title));
 
-  return svg.node();
+  return colorLegendG.node();
 }
 
 function ramp(color, n = 256) {
@@ -377,10 +386,14 @@ async function getData() {
 				if (idx === 0) {
 					container.classList.add('active-chapter');
 					container.classList.add('opening-title');
+					container.classList.add('introParas');
 				}
 				if (idx === 1) {
-          container.classList.add('intro')
-          d3.select(container).style('opacity', 0.99)
+          d3.select(container)
+            .classed('intro', true)
+            .classed('introParas', true)
+            .style('padding-bottom', `${mapHeight * 0.6}px`)
+            .style('opacity', 0.99)
 				}
 
 				chapter.classList.add(config.theme);
@@ -433,6 +446,17 @@ async function getData() {
 
   const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+  const usCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
+  
+  usCases.forEach(d => {
+    d.dateObj = parseDate(d.date),
+    d.cases = +d.cases,
+    d.perCapita = +d.cases / (332403650 / 100000)
+    d.deaths = +d.deaths
+  })
+
+  // statesPop.get(d.fips) / 100000;
+  // const perHundThou = smaRound / popPerHundThou;
 
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
@@ -597,6 +621,9 @@ async function getData() {
 
   const frames = dates.map(date => ({
     date: date,
+
+    // Why is .find messing with the original Array?
+    // usCases: usCases.find(d => d.date = date).cases,
   
     // states: new Map(
     //   statesList.map(state => [
@@ -659,8 +686,8 @@ async function getData() {
     return obj
   }
 
-  console.log('maxPerHundThouCounties', maxPerHundThouCounties)
-  console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
+  // console.log('maxPerHundThouCounties', maxPerHundThouCounties)
+  // console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
 
   const length = d3.scaleLinear()
     .domain([0, maxDailyCasesCounties])
@@ -723,9 +750,10 @@ async function getData() {
   legend({
     // color: color,
     color: legendColor,
-    title: "New Cases Per 100,000 People",
+    title: "Cases / 100,000 People",
     // title: "New Cases Per 10,000 People",
-    width: mapWidth / 1.8,
+    // width: mapWidth / 1.8,
+    width: colorLegendWidth,
     marginLeft: 15,
     marginRight: 15
   })
@@ -865,7 +893,7 @@ async function getData() {
   const spikeLegend = mapSvg.append('g')
     .attr('class', 'spikeLegend hidden')
     .attr('text-anchor', 'middle')
-    .attr('font-size', 9)
+    .attr('font-size', 8)
 
   const spikeLegendGs = spikeLegend.selectAll('g')
     .data(length.ticks(4).slice(1).reverse())
@@ -1014,12 +1042,51 @@ async function getData() {
   //   };
   // }
 
-  const formatDate = d3.utcFormat("%B %d, %Y")
-  const parseDate = d3.timeParse("%Y-%m-%d")
+  // //------------------------------------------------------
+  // // DRAWING: TIMELINE
+
+  const tlWidth = mapWidth - colorLegendWidth
+  const tlHeight = 50
+  const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
+
+  const tlX = d3.scaleBand()
+    .domain(usCases.map(d => d.date))
+    .range([tlMargin.left, tlWidth - tlMargin.right])
+
+  const tlY = d3.scaleLinear()
+    .domain(d3.extent(usCases.map(d => d.cases)))
+    .range([tlHeight - tlMargin.bottom, tlMargin.top])
+
+  const tlBars = mapSvg.append('g')
+    .attr('class', 'tlBars hidden')
+    .selectAll('rect')
+   .data(usCases)
+    .join('rect')
+    .attr('x', d => tlX(d.date))
+    .attr('y', d => tlY(d.cases))
+    .attr('width', tlX.bandwidth())
+    .attr('height', d => tlY(0) - tlY(d.cases))
+    // .attr('fill', d => color(d.perCapita))
+
+
+
+    // const timeline = svg => {
+  //   let timelineMarker = svg.append('g')
+  //     .selectAll('rect')
+
+    // return (data, transition) => {
+    //   return timeline = timeline
+    //     .data()
+    // }
+  // }
+
+  // //------------------------------------------------------
+  // // DRAWING: TICKER + STATESHAPES
 
   const ticker = svg => {
     const now = svg.append('g').append("text")
         // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
+        .attr('class', 'tickerText')
         .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
         .style("font", `bold ${10}px var(--sans-serif)`)
         .style("font-variant-numeric", "tabular-nums")
@@ -1031,11 +1098,18 @@ async function getData() {
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
 
+  let vizHidden = true
+
   const stateShapes = svg => {
     return keyframe => {
       if (keyframe !== undefined) {
-        d3.select('.colorLegend').classed('hidden', false)
+        vizHidden = false
         d3.select('.spikeLegend').classed('hidden', false)
+        d3.select('.colorLegend').classed('hidden', false)
+        d3.select('.tlBars').classed('hidden', false)
+        // const selTl = d3.select('.tlBars')
+        // selTl.classed('hidden', false)
+        // console.log(selTl.node())
         
         keyframe.statesCasesStarted.forEach((val, key) => {
           if (val) {
@@ -1059,6 +1133,7 @@ async function getData() {
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
         d3.select('.colorLegend').classed('hidden', true)
+        d3.select('.tlBars').classed('hidden', true)
       }
     }
   }
@@ -1113,6 +1188,7 @@ async function getData() {
   // const updateValues = values(chartSvg);
   const updateTicker = ticker(mapSvg)
   const updateStateShapes = stateShapes(mapSvg)
+  // const update
 
   function scrub(keyframe) {
     // const transition = chartSvg.transition()
@@ -1176,8 +1252,27 @@ async function getData() {
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
   });
-  
 
+  enterView({
+    selector: '.introParas',
+    enter: function(el) {
+    },
+    progress: function(el, progress) {
+      if (!vizHidden) {
+        console.log('Viz Not Hidden')
+        vizHidden = true
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.select('.colorLegend').classed('hidden', true)
+        d3.select('.tlBars').classed('hidden', true)
+        d3.select('.tickerText').text('')
+      }
+    },
+    exit: function(el) {
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
 }
 
 getData()
