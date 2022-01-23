@@ -1066,7 +1066,7 @@ async function getData() {
     .attr('y', d => tlY(d.cases))
     .attr('width', tlX.bandwidth())
     .attr('height', d => tlY(0) - tlY(d.cases))
-    // .attr('fill', d => color(d.perCapita))
+    .attr('fill', d => color(d.perCapita))
 
 
 
@@ -1245,6 +1245,7 @@ async function getData() {
     },
     progress: function(el, progress) {
       updateSpikes(keyFrames[Number(el.id)], progress)
+      console.log(progress)
     },
     exit: function(el) {
       scrub(keyFrames[Number(el.id - 1)])
