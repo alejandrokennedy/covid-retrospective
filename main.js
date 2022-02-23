@@ -444,14 +444,16 @@ async function getData() {
   // const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
   // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
 
-  const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
   const usCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
+  const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
+  console.log(usCases)
+
   usCases.forEach(d => {
     d.dateObj = parseDate(d.date),
     d.cases = +d.cases,
-    d.perCapita = +d.cases / (332403650 / 100000)
+    // d.perCapita = +d.cases / (332403650 / 100000)
     d.deaths = +d.deaths
   })
 
@@ -611,6 +613,25 @@ async function getData() {
 
   const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
+  
+  // const getPerCap = d => {
+  //   let cum
+
+  //   d.forEach((d) => {
+  //     d.dailyCases = d.cases - cum;
+  //     cum = d.cases;
+  //   });
+  // }
+  
+  const usCasesSma = Array.from(processData(usCases))
+  
+  usCasesSma.forEach(d => {
+    // d.smaPerCapita = 
+    d[1].perCapita = d[1].smaRound / (332403650 / 100000)
+    // return d
+  })
+
+  console.log('usCasesSma', usCasesSma)
 
   let statesMap = new Map(
     statesList.map(state => [
@@ -740,8 +761,14 @@ async function getData() {
   const maxMinusThird = color(legendMax - intoThirds)
   const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
 
+  console.log(maxMinusTwoThirds)
+  console.log(maxMinusThird)
+  console.log(maxColor)
+  
+
   const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
-  const legendColor = d3.scaleSequential(legendInterpolator)
+  const legendColor = d3.scaleSequential(interpolator)
+  // const legendColor = d3.scaleSequential(legendInterpolator)
     .domain([0, legendMax])
     .clamp(true)
     .nice()
@@ -872,11 +899,15 @@ async function getData() {
   //   }
   // }
 
+  // let prevCounties
+
   const updateSpikes = (frame, t) => {
+    // console.log(t)
     try {
       const prevCounties = prevKF.get(frame).counties || frame.counties
       frame.counties.forEach((d, i) => {
         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+        // console.log('tweenCount:', tweenCount)
         d.splice(3, 1, tweenCount);
       });
       draw(frame);
@@ -1050,23 +1081,26 @@ async function getData() {
   const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
 
   const tlX = d3.scaleBand()
-    .domain(usCases.map(d => d.date))
+    .domain(usCasesSma.map(d => d[0]))
     .range([tlMargin.left, tlWidth - tlMargin.right])
 
   const tlY = d3.scaleLinear()
-    .domain(d3.extent(usCases.map(d => d.cases)))
+    .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
     .range([tlHeight - tlMargin.bottom, tlMargin.top])
 
   const tlBars = mapSvg.append('g')
     .attr('class', 'tlBars hidden')
     .selectAll('rect')
-   .data(usCases)
+  //  .data(usCases)
+   .data(usCasesSma)
     .join('rect')
-    .attr('x', d => tlX(d.date))
-    .attr('y', d => tlY(d.cases))
+    // .attr('x', d => tlX(d.date))
+    // .attr('y', d => tlY(d.cases))
+    .attr('x', d => tlX(d[0]))
+    .attr('y', d => tlY(d[1].smaRound))
     .attr('width', tlX.bandwidth())
-    .attr('height', d => tlY(0) - tlY(d.cases))
-    .attr('fill', d => color(d.perCapita))
+    .attr('height', d => tlY(0) - tlY(d[1].smaRound))
+    .attr('fill', d => color(d[1].perCapita))
 
 
 
@@ -1241,14 +1275,18 @@ async function getData() {
   enterView({
     selector: '.dateDiv',
     enter: function(el) {
-      scrub(keyFrames[Number(el.id)])
+      const frame = keyFrames[Number(el.id)]
+      // prevCounties = prevKF.get(frame.counties) || frame.counties
+      scrub(frame)
     },
     progress: function(el, progress) {
       updateSpikes(keyFrames[Number(el.id)], progress)
-      console.log(progress)
+      // console.log(progress)
     },
     exit: function(el) {
-      scrub(keyFrames[Number(el.id - 1)])
+      const frame = keyFrames[Number(el.id)]
+      scrub(frame)
+      prevCounties = prevKF.get(frame.counties) || frame.counties
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
