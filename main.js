@@ -675,7 +675,9 @@ async function getData() {
       countiesByPlace.get(county).get(date)
         ? countiesByPlace.get(county).get(date)['perHundThou']
         : 0
-    ])
+    ]),
+
+    // usCasesSma: usCasesSma
   }))
 
   const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
@@ -1134,6 +1136,115 @@ async function getData() {
 
   let vizHidden = true
 
+  const progress = svg => {
+    let marker = svg
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', 1)
+      .attr('height', tlHeight)
+
+  // return (data, transition) =>
+  //     (value = value
+  //       .data(data.statesRanked, d => d.state)
+  //       .join(
+  //         enter =>
+  //           enter
+  //             .append('text')
+  //             // change
+  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
+  //             .attr('y', y.bandwidth() / 2)
+  //             .attr('x', 3)
+  //             .attr('dy', '0.25em')
+  //             .style('opacity', 0)
+  //             .text(d => (d.value ? d.value.smaRound : 0)),
+  //         update => update,
+  //         exit => exit.transition(transition).remove()
+  //       )
+  // .call(value => {
+    //         return value
+    //           .transition(transition)
+    //           .attr(
+    //             'transform',
+    //             d =>
+    //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
+    //           )
+    //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
+    //           .tween('text', d => {
+    //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
+    //             return prev.get(d) && d.value
+    //               ? !prev.get(d).value
+    //                 ? textTween(0, d.value.smaRound)
+    //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
+    //               : textTween(0, 0);
+    //           });
+    //       }));
+    
+    return keyframe => {
+      if (keyframe !== undefined) {
+        // console.log('marker', marker)
+        // console.log('marker', marker.node())
+        // console.log('keyframe.date', keyframe.date)
+        // console.log('tlX(keyframe.date)', tlX(keyframe.date))
+
+        marker.attr('x', () => tlX(keyframe.date))
+
+        // marker = marker.data(keyframe)
+          // .attr('x', d => {
+          //   console.log(d)
+          //   console.log(tlX(d.usCasesSma[0]))
+          //   return tlX(d.usCasesSma[0])
+          // })
+          // .call(marker => {
+            // console.log('marker', marker.node())
+
+            // marker.style('fill', 'orange')
+
+            // return marker.attr('x', d => {
+            // // marker.attr('x', d => {
+            //   console.log('marker x:', tlX(d.usCasesSma[0]))
+            //   return tlX(d.usCasesSma[0])
+            // })
+            
+            // return marker.transition().attr('x', d => {
+            //   console.log(d)
+            //   console.log(tlX(d.usCasesSma[0]))
+            //   return tlX(d.usCasesSma[0])
+            // })
+          // })
+        
+        // d3.select('.tlBars').classed('hidden', false)
+        // // const selTl = d3.select('.tlBars')
+        // // selTl.classed('hidden', false)
+        // // console.log(selTl.node())
+        
+        // keyframe.statesCasesStarted.forEach((val, key) => {
+        //   if (val) {
+        //     d3.select(`.f${fipsLookup[key]}.hidden`)
+        //       .classed('hidden', false)
+        //       .raise()
+        //       .attr('stroke', 'black')
+        //       .attr('fill', '#e8e8e8')
+        //       .transition().duration(750)
+        //       .attr('stroke', '#aaa')
+        //       .attr('fill', mapFill)
+
+        //   } else {
+        //     d3.select(`.f${fipsLookup[key]}`)
+        //       .classed('hidden', true)
+        //       .attr('stroke', 'none')
+        //       .attr('fill', 'none')
+        //   }
+        // })
+      } else {
+        // d3.selectAll('.stateShape').classed('hidden', true)
+        // d3.select('.spikeLegend').classed('hidden', true)
+        // d3.select('.colorLegend').classed('hidden', true)
+        // d3.select('.tlBars').classed('hidden', true)
+      }
+    }
+  }
+
   const stateShapes = svg => {
     return keyframe => {
       if (keyframe !== undefined) {
@@ -1222,6 +1333,7 @@ async function getData() {
   // const updateValues = values(chartSvg);
   const updateTicker = ticker(mapSvg)
   const updateStateShapes = stateShapes(mapSvg)
+  const updateProgress = progress(mapSvg);
   // const update
 
   function scrub(keyframe) {
@@ -1243,6 +1355,7 @@ async function getData() {
     // updateValues(keyframe, transition);
     updateTicker(keyframe);
     updateStateShapes(keyframe)
+    updateProgress(keyframe)
 
     // update(keyframe)
     // updateSpikes(keyframe)
