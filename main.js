@@ -352,9 +352,11 @@ async function getData() {
 				container.setAttribute('id', record.id);
 				container.classList.add('step');
 				if (idx === 0) {
-					container.classList.add('active-chapter');
-					container.classList.add('opening-title');
-					container.classList.add('introParas');
+          d3.select(container)
+            .classed('active-chapter', true)
+            .classed('opening-title', true)
+            .classed('introParas', true)
+            .style('padding-bottom', 0)
 				}
 				if (idx === 1) {
           d3.select(container)
