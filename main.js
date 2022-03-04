@@ -253,7 +253,6 @@ async function getData() {
   const getDataStart = performance.now()
 
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-
   // const storyData = await d3.json('./data/story.json')
 
   const storyFetchEnd = performance.now()
@@ -267,15 +266,9 @@ async function getData() {
       alignment: d.alignment,
       description: d.content,
       date: d.date
-      // onChapterEnter: layerFormat(d.onLayerEnter),
-      // onChapterExit: layerFormat(d.onLayerExit),
-      // onChapterEnter: Object.entries(d).splice(17).map(d => ({ "layer": d[0], "opacity": !d[1] ? 0 : Number(d[1])}))
     }
   })
   config.chapters = chapters
-
-  ///////////////////// CHAPTERS vvv
-
 
   const alignments = {
     'left': 'lefty',
@@ -391,7 +384,8 @@ async function getData() {
 				story.appendChild(footer);
 			}
   
-  ///////////////////// CHAPTERS ^^^
+//---------------------------------------------------------
+// // GEO DATA
 
   const us = await d3.json('./data/us.json')
 
@@ -409,18 +403,21 @@ async function getData() {
     .attr('class', d => `stateShape f${d.id} hidden`)
     .attr('d', path)
 
+//---------------------------------------------------------
+// // COVID DATA
 
   // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
-  // const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
-  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
+  
+  // const rawUsCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
+  const rawUsCases = await d3.csv('./data/us-cases.csv')
 
   const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
-  const usCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
-  const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-  
-  console.log(usCases)
+  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
 
-  usCases.forEach(d => {
+  // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+  const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
+
+  rawUsCases.forEach(d => {
     d.dateObj = parseDate(d.date),
     d.cases = +d.cases,
     // d.perCapita = +d.cases / (332403650 / 100000)
@@ -482,11 +479,11 @@ async function getData() {
       const sma = d3.mean(tempArr);
       const smaRound = Math.round(sma);
   
-      const popPerHundThou = data[0].county
-        ? countiesPop.get(id(d)) / 100000
-        : statesPop.get(d.fips) / 100000;
-        // ? countiesPop.get(id(d)) / 10000
-        // : statesPop.get(d.fips) / 10000;
+      const popPerHundThou = statesPop.get(d.fips) / 100000;
+
+      // const popPerHundThou = data[0].county
+      //   ? countiesPop.get(id(d)) / 100000
+      //   : statesPop.get(d.fips) / 100000;
   
       const perHundThou = smaRound / popPerHundThou;
   
@@ -518,7 +515,8 @@ async function getData() {
   )
 
   // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
-  const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
+  // const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
+  const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
 
   const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
@@ -532,9 +530,9 @@ async function getData() {
   // ------------------------------------------------------
   // // POPULATION DATA
 
-  const statesPop = new Map(
-    statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
-  )
+  // const statesPop = new Map(
+  //   statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
+  // )
 
   const cityCounties = [
     {
@@ -593,7 +591,7 @@ async function getData() {
   //   });
   // }
   
-  const usCasesSma = Array.from(processData(usCases))
+  const usCasesSma = Array.from(processData(rawUsCases))
   
   usCasesSma.forEach(d => {
     // d.smaPerCapita = 
@@ -1384,7 +1382,6 @@ async function getData() {
     },
     progress: function(el, progress) {
       if (!vizHidden) {
-        console.log('Viz Not Hidden')
         vizHidden = true
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
