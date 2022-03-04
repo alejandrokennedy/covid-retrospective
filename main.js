@@ -430,9 +430,6 @@ async function getData() {
   const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
-  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
-
   // ------------------------------------------------------
   // // MAP DATA
 
@@ -479,11 +476,9 @@ async function getData() {
       const sma = d3.mean(tempArr);
       const smaRound = Math.round(sma);
   
-      const popPerHundThou = statesPop.get(d.fips) / 100000;
-
-      // const popPerHundThou = data[0].county
-      //   ? countiesPop.get(id(d)) / 100000
-      //   : statesPop.get(d.fips) / 100000;
+      const popPerHundThou = data[0].county
+        ? countiesPop.get(id(d)) / 100000
+        : statesPop.get(d.fips) / 100000;
   
       const perHundThou = smaRound / popPerHundThou;
   
@@ -515,8 +510,7 @@ async function getData() {
   )
 
   // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
-  // const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
-  const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
+  const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
 
   const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
@@ -530,9 +524,9 @@ async function getData() {
   // ------------------------------------------------------
   // // POPULATION DATA
 
-  // const statesPop = new Map(
-  //   statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
-  // )
+  const statesPop = new Map(
+    statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
+  )
 
   const cityCounties = [
     {
@@ -1382,6 +1376,7 @@ async function getData() {
     },
     progress: function(el, progress) {
       if (!vizHidden) {
+        console.log('Viz Not Hidden')
         vizHidden = true
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
