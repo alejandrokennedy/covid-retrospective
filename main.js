@@ -1,7 +1,10 @@
 //---------------------------------------------------------
 // SETUP
-// //------------------------------------------------------
+
+// ------------------------------------------------------
 // // MISCELLANEOUS VARIABLES SETUP
+
+const start = performance.now()
 
 const opacity = 0.7
 const avgNum = 14
@@ -12,7 +15,7 @@ const mapFill = '#f8f8f8'
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
 
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // PAGE SETUP
 
 const body = d3.select('body')
@@ -25,12 +28,7 @@ const container = d3.select('#container')
   .style('position', 'relative')
   .style('margin', '0 auto')
 
-// const legendContainer = d3.select('#legendContainer')
-//   .style('display', 'flex')
-//   .style('flex-direction', 'row')
-
-
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // MAP SETUP
 
 const mapContainer = d3.select('#map-container')
@@ -43,12 +41,11 @@ let mapHeight = macBounds.height
 const justMapHeight = mapWidth / 1.6
 const mapMarginTop = macBounds.height - 50 - justMapHeight
 const mapMargin = {top: mapMarginTop, right: 0, bottom: 0, left: 0}
-// const spikeMax = d3.min([mapMargin.top + 210, justMapHeight * 1.4])
 const spikeMax = macBounds.height
 const spikeWidth = mapWidth / 90
 
 
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // CANVAS SETUP
 
 const dpi = window.devicePixelRatio
@@ -71,7 +68,7 @@ resizeCanvas()
 const ctx = mapCanvas.node().getContext('2d')
 ctx.scale(dpi, dpi)
 
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // RESIZE OBSERVER
 
 // document.addEventListener('DOMContentLoaded', () => {
@@ -87,7 +84,7 @@ function handleResize(entries) {
 }
 
 
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // MAP SVG SETUP
 
 const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
@@ -95,33 +92,7 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
   .attr('width', mapWidth)
   .attr('height', mapHeight)
 
-// mapSvg.append('text')
-//   .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2})`)
-//   .style('text-anchor', 'middle')
-//   .style('font-size', () => d3.min([mapWidth/20, 30]))
-//   .text('COVID-19 Daily New Cases')
-
-// mapSvg.append('text')
-//   .style('text-anchor', 'middle')
-//   .style('font-size', () => d3.min([mapWidth/30, 14]))
-//   .attr('transform', () => `translate(${mapWidth / 2},${mapMargin.top / 2 + 20})`)
-//   .text('Two-Week Rolling Average')
-
-// //------------------------------------------------------
-// // CHART SVG SETUP
-
-// const chartContainer = d3.select('#chart-container')
-// const chartContainerBounds = chartContainer.node().getBoundingClientRect()
-// const width = chartContainerBounds.width
-// const height = 900
-// const chartSvg = chartContainer.append('svg')
-//   .attr('id', 'chartSvg')
-//   // .attr('viewBox', `0 0 ${width} ${height}`)
-//   .attr('width', width)
-//   .attr('height', height)
-//   .style('margin', '10 0 0 0')
-
-// //------------------------------------------------------
+// ------------------------------------------------------
 // // COLOR LEGEND SETUP
 
 const colorLegendWidth = d3.min([mapWidth / 4, 320])
@@ -141,14 +112,6 @@ function legend({
   tickFormat,
   tickValues
 } = {}) {
-
-  // const svg = colorContainer.append("svg")
-  //   .attr("width", width)
-  //   .attr("height", height)
-  //   .attr("viewBox", [0, 0, width, height])
-  //   .style("overflow", "visible")
-  //   .style("display", "block")
-  //   .attr("class", "colorLegend hidden")
 
   const colorLegendG = mapSvg.append('g')
     .attr('transform', `translate(${colorLegendOffset}, 0)`)
@@ -286,10 +249,15 @@ function ramp(color, n = 256) {
 // DATA
 
 async function getData() {
+
+  const getDataStart = performance.now()
+
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  
+
   // const storyData = await d3.json('./data/story.json')
 
+  const storyFetchEnd = performance.now()
+  
   const chapters = storyData.map((d, i) => {
     return {
       id: i,
@@ -466,7 +434,7 @@ async function getData() {
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // MAP DATA
 
   us.objects.counties.geometries.forEach(d => {
@@ -474,7 +442,7 @@ async function getData() {
     d.id = str.length === 4 ? '0'.concat(str) : str
   })
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // COVID DATA
 
   // // // COVID DATA FUNCTIONS & HELPER VARIABLES
@@ -559,7 +527,7 @@ async function getData() {
       fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
     })
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // POPULATION DATA
 
   const statesPop = new Map(
@@ -608,7 +576,7 @@ async function getData() {
 
   const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // FRAMES DATA
 
   const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
@@ -787,7 +755,7 @@ async function getData() {
     marginRight: 15
   })
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // DATA: RANKING
   
   // function rank(value) {
@@ -816,7 +784,7 @@ async function getData() {
 
   // ------------------------------------------------------
   // DRAWING
-  // //------------------------------------------------------
+  // ------------------------------------------------------
 
   // d3.select('#scrubInput')
   //   .attr('max', keyFrames.length - 1)
@@ -865,7 +833,7 @@ async function getData() {
     })
 
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // DRAWING: SPIKES
 
   const draw = frame => {
@@ -918,7 +886,7 @@ async function getData() {
     }
   }
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // DRAWING: SPIKE LEGEND
   
   const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
@@ -952,7 +920,7 @@ async function getData() {
 
   //------------------------------------------------------
   // BARS
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // BARS: FUNCTIONS
 
   // const margin = { top: 10, right: 50, bottom: 0, left: 100 }
@@ -1075,7 +1043,7 @@ async function getData() {
   //   };
   // }
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // DRAWING: TIMELINE
 
   const tlWidth = mapWidth - colorLegendWidth
@@ -1116,7 +1084,7 @@ async function getData() {
     // }
   // }
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // DRAWING: TICKER + STATESHAPES
 
   const ticker = svg => {
@@ -1139,6 +1107,7 @@ async function getData() {
   const progress = svg => {
     let marker = svg
       .append('rect')
+      .attr('class', 'progress hidden')
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', 1)
@@ -1252,6 +1221,7 @@ async function getData() {
         d3.select('.spikeLegend').classed('hidden', false)
         d3.select('.colorLegend').classed('hidden', false)
         d3.select('.tlBars').classed('hidden', false)
+        d3.select('.progress').classed('hidden', false)
         // const selTl = d3.select('.tlBars')
         // selTl.classed('hidden', false)
         // console.log(selTl.node())
@@ -1279,6 +1249,7 @@ async function getData() {
         d3.select('.spikeLegend').classed('hidden', true)
         d3.select('.colorLegend').classed('hidden', true)
         d3.select('.tlBars').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
       }
     }
   }
@@ -1324,7 +1295,7 @@ async function getData() {
   //   };
   // }
 
-  // //------------------------------------------------------
+  // ------------------------------------------------------
   // // BARS: DRAWING THINGS
 
   // const updateBars = bars(chartSvg);
@@ -1417,6 +1388,7 @@ async function getData() {
         d3.select('.spikeLegend').classed('hidden', true)
         d3.select('.colorLegend').classed('hidden', true)
         d3.select('.tlBars').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
         d3.select('.tickerText').text('')
       }
     },
