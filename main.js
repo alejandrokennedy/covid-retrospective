@@ -403,19 +403,16 @@ async function getData() {
     .attr('class', d => `stateShape f${d.id} hidden`)
     .attr('d', path)
 
-//---------------------------------------------------------
-// // COVID DATA
-
-  // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
+  us.objects.counties.geometries.forEach(d => {
+    let str = d.id.toString()
+    d.id = str.length === 4 ? '0'.concat(str) : str
+  })
   
+//---------------------------------------------------------
+// // US CASES DATA + DRAWING
+
   // const rawUsCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
   const rawUsCases = await d3.csv('./data/us-cases.csv')
-
-  const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
-  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
-
-  // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-  const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
 
   rawUsCases.forEach(d => {
     d.dateObj = parseDate(d.date),
@@ -424,19 +421,338 @@ async function getData() {
     d.deaths = +d.deaths
   })
 
+  const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
+
+  const processData = data => {
+    const tempArr = Array.from(new Array(avgNum), d => 0);
+    const returnMap = new Map();
+  
+    data.forEach((d, i) => {
+      const newCases = Math.max(
+        d.cases - (data[i - 1] ? data[i - 1].cases : 0),
+        0
+      );
+  
+      tempArr.push(newCases);
+      if (tempArr.length > avgNum) tempArr.shift();
+      const sma = d3.mean(tempArr);
+      const smaRound = Math.round(sma);
+
+      let popPerHundThou
+      let perHundThou
+      if (data[0].county) {
+        popPerHundThou = countiesPop.get(id(d)) / 100000
+        perHundThou = smaRound / popPerHundThou;
+      }
+  
+      // const popPerHundThou = data[0].county
+      //   ? countiesPop.get(id(d)) / 100000
+      //   : statesPop.get(d.fips) / 100000;
+  
+      // const perHundThou = smaRound / popPerHundThou;
+  
+      returnMap.set(d.date, {
+        newCases: newCases,
+        sma: sma,
+        smaRound: smaRound,
+        perHundThou: perHundThou
+      });
+    });
+  
+    return returnMap;
+  }
+
+  const usCasesSma = Array.from(processData(rawUsCases))
+  
+  usCasesSma.forEach(d => {
+    // d.smaPerCapita = 
+    d[1].perCapita = d[1].smaRound / (332403650 / 100000)
+    // return d
+  })
+
+//---------------------------------------------------------
+// // DATEDIVS EXPERIMENT
+
+
+  const dateContainer = d3.select('#story')
+    .append('div')
+    .attr('id', 'dateContainer')
+    .style('position', 'absolute')
+    .style('top', d => {
+      const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
+      const introBounds = d3.select('.intro').node().getBoundingClientRect()
+      return `${openingTitleBounds.height + introBounds.height}px`
+    })
+    .style('opacity', 0.0)
+
+  const frames = dates.map(d => ({date: d}))
+  console.log('frames1', frames)
+
+  const keyFrames = frames
+
+  const dateDivs = dateContainer.selectAll('.dateDiv')
+    .data(keyFrames)
+    .join('div')
+    .attr('class', 'dateDiv')
+    .attr('id', (d, i) => i)
+    .attr('height', 10)
+    .attr('width', 20)
+    .style('padding', '50px')
+    .text(d => d.date)
+
+// ------------------------------------------------------
+// // DRAWING: TIMELINE
+
+const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
+const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+
+const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+const color = d3.scaleSequential(interpolator)
+  // .domain([0, 2366])
+  .domain([0, maxPerHundThouCounties])
+  .clamp(true)
+  .nice()
+
+const tlWidth = mapWidth - colorLegendWidth
+const tlHeight = 50
+const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
+
+const tlX = d3.scaleBand()
+  .domain(usCasesSma.map(d => d[0]))
+  .range([tlMargin.left, tlWidth - tlMargin.right])
+
+const tlY = d3.scaleLinear()
+  .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
+  .range([tlHeight - tlMargin.bottom, tlMargin.top])
+
+mapSvg.append('g')
+  .attr('class', 'tlBars hidden')
+  .selectAll('rect')
+ .data(usCasesSma)
+  .join('rect')
+  .attr('x', d => tlX(d[0]))
+  .attr('y', d => tlY(d[1].smaRound))
+  .attr('width', tlX.bandwidth())
+  .attr('height', d => tlY(0) - tlY(d[1].smaRound))
+  .attr('fill', d => color(d[1].perCapita))
+
+// ------------------------------------------------------
+// DRAW FUNCTIONS
+
+  const ticker = svg => {
+    const now = svg.append('g').append("text")
+        // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
+        .attr('class', 'tickerText')
+        .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
+        .style("font", `bold ${10}px var(--sans-serif)`)
+        .style("font-variant-numeric", "tabular-nums")
+        .style("text-anchor", "middle")
+        .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+        // .text(formatDate(parseDate(keyFrames[0].date)));
+        .text('');
+
+    return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
+  }
+
+  let vizHidden = true
+
+  const progress = svg => {
+    let marker = svg
+      .append('rect')
+      .attr('class', 'progress hidden')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', 1)
+      .attr('height', tlHeight)
+
+  // return (data, transition) =>
+  //     (value = value
+  //       .data(data.statesRanked, d => d.state)
+  //       .join(
+  //         enter =>
+  //           enter
+  //             .append('text')
+  //             // change
+  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
+  //             .attr('y', y.bandwidth() / 2)
+  //             .attr('x', 3)
+  //             .attr('dy', '0.25em')
+  //             .style('opacity', 0)
+  //             .text(d => (d.value ? d.value.smaRound : 0)),
+  //         update => update,
+  //         exit => exit.transition(transition).remove()
+  //       )
+  // .call(value => {
+    //         return value
+    //           .transition(transition)
+    //           .attr(
+    //             'transform',
+    //             d =>
+    //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
+    //           )
+    //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
+    //           .tween('text', d => {
+    //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
+    //             return prev.get(d) && d.value
+    //               ? !prev.get(d).value
+    //                 ? textTween(0, d.value.smaRound)
+    //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
+    //               : textTween(0, 0);
+    //           });
+    //       }));
+    
+    return keyframe => {
+      if (keyframe !== undefined) {
+        // console.log('marker', marker)
+        // console.log('marker', marker.node())
+        // console.log('keyframe.date', keyframe.date)
+        // console.log('tlX(keyframe.date)', tlX(keyframe.date))
+
+        marker.attr('x', () => tlX(keyframe.date))
+
+        // marker = marker.data(keyframe)
+          // .attr('x', d => {
+          //   console.log(d)
+          //   console.log(tlX(d.usCasesSma[0]))
+          //   return tlX(d.usCasesSma[0])
+          // })
+          // .call(marker => {
+            // console.log('marker', marker.node())
+
+            // marker.style('fill', 'orange')
+
+            // return marker.attr('x', d => {
+            // // marker.attr('x', d => {
+            //   console.log('marker x:', tlX(d.usCasesSma[0]))
+            //   return tlX(d.usCasesSma[0])
+            // })
+            
+            // return marker.transition().attr('x', d => {
+            //   console.log(d)
+            //   console.log(tlX(d.usCasesSma[0]))
+            //   return tlX(d.usCasesSma[0])
+            // })
+          // })
+        
+        // d3.select('.tlBars').classed('hidden', false)
+        // // const selTl = d3.select('.tlBars')
+        // // selTl.classed('hidden', false)
+        // // console.log(selTl.node())
+        
+        // keyframe.statesCasesStarted.forEach((val, key) => {
+        //   if (val) {
+        //     d3.select(`.f${fipsLookup[key]}.hidden`)
+        //       .classed('hidden', false)
+        //       .raise()
+        //       .attr('stroke', 'black')
+        //       .attr('fill', '#e8e8e8')
+        //       .transition().duration(750)
+        //       .attr('stroke', '#aaa')
+        //       .attr('fill', mapFill)
+
+        //   } else {
+        //     d3.select(`.f${fipsLookup[key]}`)
+        //       .classed('hidden', true)
+        //       .attr('stroke', 'none')
+        //       .attr('fill', 'none')
+        //   }
+        // })
+      } else {
+        // d3.selectAll('.stateShape').classed('hidden', true)
+        // d3.select('.spikeLegend').classed('hidden', true)
+        // d3.select('.colorLegend').classed('hidden', true)
+        // d3.select('.tlBars').classed('hidden', true)
+      }
+    }
+  }
+
+  const stateShapes = svg => {
+    return keyframe => {
+      if (keyframe !== undefined) {
+        vizHidden = false
+        d3.select('.spikeLegend').classed('hidden', false)
+        d3.select('.colorLegend').classed('hidden', false)
+        d3.select('.tlBars').classed('hidden', false)
+        d3.select('.progress').classed('hidden', false)
+        // const selTl = d3.select('.tlBars')
+        // selTl.classed('hidden', false)
+        // console.log(selTl.node())
+        
+        keyframe.statesCasesStarted.forEach((val, key) => {
+          if (val) {
+            d3.select(`.f${fipsLookup[key]}.hidden`)
+              .classed('hidden', false)
+              .raise()
+              .attr('stroke', 'black')
+              .attr('fill', '#e8e8e8')
+              .transition().duration(750)
+              .attr('stroke', '#aaa')
+              .attr('fill', mapFill)
+
+          } else {
+            d3.select(`.f${fipsLookup[key]}`)
+              .classed('hidden', true)
+              .attr('stroke', 'none')
+              .attr('fill', 'none')
+          }
+        })
+      } else {
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.select('.colorLegend').classed('hidden', true)
+        d3.select('.tlBars').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
+      }
+    }
+  }
+
+// ------------------------------------------------------
+// // UPDATE FUNCTIONS
+  const updateTicker = ticker(mapSvg)
+  const updateStateShapes = stateShapes(mapSvg)
+  const updateProgress = progress(mapSvg);
+    
+  enterView({
+    selector: '.dateDiv',
+    enter: function(el) {
+      console.log('entered!')
+      const frame = keyFrames[Number(el.id)]
+      // prevCounties = prevKF.get(frame.counties) || frame.counties
+      scrub(frame)
+    },
+    progress: function(el, progress) {
+      updateSpikes(keyFrames[Number(el.id)], progress)
+      // console.log(progress)
+    },
+    exit: function(el) {
+      const frame = keyFrames[Number(el.id)]
+      scrub(frame)
+      prevCounties = prevKF.get(frame.counties) || frame.counties
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
+
+//---------------------------------------------------------
+// // COVID DATA
+
+  // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
+  
+  const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
+  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
+
+  // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+  const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
+
   // statesPop.get(d.fips) / 100000;
   // const perHundThou = smaRound / popPerHundThou;
 
-  const statePop = await d3.csv('./data/statePop.csv')
+  // const statePop = await d3.csv('./data/statePop.csv')
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
   // ------------------------------------------------------
   // // MAP DATA
-
-  us.objects.counties.geometries.forEach(d => {
-    let str = d.id.toString()
-    d.id = str.length === 4 ? '0'.concat(str) : str
-  })
 
   // ------------------------------------------------------
   // // COVID DATA
@@ -461,37 +777,6 @@ async function getData() {
     return feature && path.centroid(feature);
   }
 
-  const processData = data => {
-    const tempArr = Array.from(new Array(avgNum), d => 0);
-    const returnMap = new Map();
-  
-    data.forEach((d, i) => {
-      const newCases = Math.max(
-        d.cases - (data[i - 1] ? data[i - 1].cases : 0),
-        0
-      );
-  
-      tempArr.push(newCases);
-      if (tempArr.length > avgNum) tempArr.shift();
-      const sma = d3.mean(tempArr);
-      const smaRound = Math.round(sma);
-  
-      const popPerHundThou = data[0].county
-        ? countiesPop.get(id(d)) / 100000
-        : statesPop.get(d.fips) / 100000;
-  
-      const perHundThou = smaRound / popPerHundThou;
-  
-      returnMap.set(d.date, {
-        newCases: newCases,
-        sma: sma,
-        smaRound: smaRound,
-        perHundThou: perHundThou
-      });
-    });
-  
-    return returnMap;
-  }
 
   // // // COVID DATA TRANSFORMATIONS
 
@@ -510,7 +795,7 @@ async function getData() {
   )
 
   // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
-  const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
+  // const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
 
   const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
@@ -524,9 +809,9 @@ async function getData() {
   // ------------------------------------------------------
   // // POPULATION DATA
 
-  const statesPop = new Map(
-    statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
-  )
+  // const statesPop = new Map(
+  //   statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
+  // )
 
   const cityCounties = [
     {
@@ -575,25 +860,7 @@ async function getData() {
 
   const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
-  
-  // const getPerCap = d => {
-  //   let cum
 
-  //   d.forEach((d) => {
-  //     d.dailyCases = d.cases - cum;
-  //     cum = d.cases;
-  //   });
-  // }
-  
-  const usCasesSma = Array.from(processData(rawUsCases))
-  
-  usCasesSma.forEach(d => {
-    // d.smaPerCapita = 
-    d[1].perCapita = d[1].smaRound / (332403650 / 100000)
-    // return d
-  })
-
-  console.log('usCasesSma', usCasesSma)
 
   let statesMap = new Map(
     statesList.map(state => [
@@ -602,49 +869,66 @@ async function getData() {
     ])
   )
 
-  const frames = dates.map(date => ({
-    date: date,
-
-    // Why is .find messing with the original Array?
-    // usCases: usCases.find(d => d.date = date).cases,
-  
-    // states: new Map(
-    //   statesList.map(state => [
-    //     state,
-    //     statesByPlace.get(state).get(date) || {
-    //       newCases: 0,
-    //       sma: 0,
-    //       smaRound: 0,
-    //       perHundThou: 0
-    //     }
-    //   ])
-    // ),
-
-    statesCasesStarted: new Map(statesList.map(state => {
-      const obj = statesByPlace.get(state).get(date)
+  frames.forEach(d => {
+    d.statesCasesStarted = new Map(statesList.map(state => {
+      const obj = statesByPlace.get(state).get(d.date)
       if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
       return [
         state,
         statesMap.get(state)
       ]
-    })),
+    }))
   
-    counties: Array.from(countyPositions, ([key, value]) => key).map(county => [
+    d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
       county,
-      countiesByPlace.get(county).get(date)
-        ? countiesByPlace.get(county).get(date)['smaRound']
+      countiesByPlace.get(county).get(d.date)
+        ? countiesByPlace.get(county).get(d.date)['smaRound']
         : 0,
-      countiesByPlace.get(county).get(date)
-        ? countiesByPlace.get(county).get(date)['perHundThou']
+      countiesByPlace.get(county).get(d.date)
+        ? countiesByPlace.get(county).get(d.date)['perHundThou']
         : 0
-    ]),
+    ])
+  })
 
-    // usCasesSma: usCasesSma
-  }))
+  // frames.forEach(d => {
+  //   d.statesCasesStarted = 'hi'
+  
+  //   d.counties = ['one', 'two']
+  // })
+  console.log('frames2', frames)
 
-  const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
-  const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-  const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+  // OLD FRAMES
+  // const frames = dates.map(date => ({
+  //   date: date,
+
+  //   statesCasesStarted: new Map(statesList.map(state => {
+  //     const obj = statesByPlace.get(state).get(date)
+  //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
+  //     return [
+  //       state,
+  //       statesMap.get(state)
+  //     ]
+  //   })),
+  
+  //   counties: Array.from(countyPositions, ([key, value]) => key).map(county => [
+  //     county,
+  //     countiesByPlace.get(county).get(date)
+  //       ? countiesByPlace.get(county).get(date)['smaRound']
+  //       : 0,
+  //     countiesByPlace.get(county).get(date)
+  //       ? countiesByPlace.get(county).get(date)['perHundThou']
+  //       : 0
+  //   ]),
+  // }))
+
+
+  // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
+  // const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
+  // console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
+  
+  // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+  // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+
   function getMaxDailyCasesCounties() {
     let max = 0
     let theDate
@@ -678,12 +962,12 @@ async function getData() {
     .domain([0, maxDailyCasesCounties])
     .range([0, spikeMax])
 
-  const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
-  const color = d3.scaleSequential(interpolator)
-    .domain([0, maxPerHundThouCounties])
-    .clamp(true)
-    .nice()
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
+  // const color = d3.scaleSequential(interpolator)
+  //   .domain([0, maxPerHundThouCounties])
+  //   .clamp(true)
+  //   .nice()
 
   const lengthOfInterest = length.invert(spikeWidth / 2)
   
@@ -718,16 +1002,19 @@ async function getData() {
     return arr;
   }
 
-  const legendMax = findLegendMax()
+  // const legendMax = findLegendMax()
+  const legendMax = 1000
   const maxColor = color(legendMax)
+
+  console.log('legendMax', legendMax)
 
   const intoThirds = Math.round(legendMax / 3)
   const maxMinusThird = color(legendMax - intoThirds)
   const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
 
-  console.log(maxMinusTwoThirds)
-  console.log(maxMinusThird)
-  console.log(maxColor)
+  // console.log(maxMinusTwoThirds)
+  // console.log(maxMinusThird)
+  // console.log(maxColor)
   
 
   const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
@@ -769,7 +1056,7 @@ async function getData() {
   // })
   // const keyFrames = protoKeyFrames
 
-  const keyFrames = frames
+  // const keyFrames = frames
   const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
   
   // const nameFrames = d3.groups(keyFrames.flatMap(data => data.statesRanked), d => d.state)
@@ -786,27 +1073,27 @@ async function getData() {
 
   // // DRAWING: DATE DIVS
 
-  const dateContainer = d3.select('#story')
-    .append('div')
-    .attr('id', 'dateContainer')
-    .style('position', 'absolute')
-    .style('top', d => {
-      const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
-      const introBounds = d3.select('.intro').node().getBoundingClientRect()
-      return `${openingTitleBounds.height + introBounds.height}px`
-    })
-    .style('opacity', 0.0)
+  // const dateContainer = d3.select('#story')
+  //   .append('div')
+  //   .attr('id', 'dateContainer')
+  //   .style('position', 'absolute')
+  //   .style('top', d => {
+  //     const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
+  //     const introBounds = d3.select('.intro').node().getBoundingClientRect()
+  //     return `${openingTitleBounds.height + introBounds.height}px`
+  //   })
+  //   .style('opacity', 0.0)
 
-  const dateDivs = dateContainer.selectAll('.dateDiv')
-    .data(keyFrames)
-    .join('div')
-    .attr('class', 'dateDiv')
-    .attr('id', (d, i) => i)
-    .attr('height', 10)
-    .attr('width', 20)
-    .style('padding', '50px')
-    // .style('border-top', '1px solid green')
-    .text(d => d.date)
+  // const dateDivs = dateContainer.selectAll('.dateDiv')
+  //   .data(keyFrames)
+  //   .join('div')
+  //   .attr('class', 'dateDiv')
+  //   .attr('id', (d, i) => i)
+  //   .attr('height', 10)
+  //   .attr('width', 20)
+  //   .style('padding', '50px')
+  //   // .style('border-top', '1px solid green')
+  //   .text(d => d.date)
 
   d3.selectAll('.step')
     .data(chapters)
@@ -1037,35 +1324,6 @@ async function getData() {
   //   };
   // }
 
-  // ------------------------------------------------------
-  // // DRAWING: TIMELINE
-
-  const tlWidth = mapWidth - colorLegendWidth
-  const tlHeight = 50
-  const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
-
-  const tlX = d3.scaleBand()
-    .domain(usCasesSma.map(d => d[0]))
-    .range([tlMargin.left, tlWidth - tlMargin.right])
-
-  const tlY = d3.scaleLinear()
-    .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
-    .range([tlHeight - tlMargin.bottom, tlMargin.top])
-
-  const tlBars = mapSvg.append('g')
-    .attr('class', 'tlBars hidden')
-    .selectAll('rect')
-  //  .data(usCases)
-   .data(usCasesSma)
-    .join('rect')
-    // .attr('x', d => tlX(d.date))
-    // .attr('y', d => tlY(d.cases))
-    .attr('x', d => tlX(d[0]))
-    .attr('y', d => tlY(d[1].smaRound))
-    .attr('width', tlX.bandwidth())
-    .attr('height', d => tlY(0) - tlY(d[1].smaRound))
-    .attr('fill', d => color(d[1].perCapita))
-
 
 
     // const timeline = svg => {
@@ -1081,172 +1339,172 @@ async function getData() {
   // ------------------------------------------------------
   // // DRAWING: TICKER + STATESHAPES
 
-  const ticker = svg => {
-    const now = svg.append('g').append("text")
-        // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
-        .attr('class', 'tickerText')
-        .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
-        .style("font", `bold ${10}px var(--sans-serif)`)
-        .style("font-variant-numeric", "tabular-nums")
-        .style("text-anchor", "middle")
-        .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-        // .text(formatDate(parseDate(keyFrames[0].date)));
-        .text('');
+  // const ticker = svg => {
+  //   const now = svg.append('g').append("text")
+  //       // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
+  //       .attr('class', 'tickerText')
+  //       .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
+  //       .style("font", `bold ${10}px var(--sans-serif)`)
+  //       .style("font-variant-numeric", "tabular-nums")
+  //       .style("text-anchor", "middle")
+  //       .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+  //       // .text(formatDate(parseDate(keyFrames[0].date)));
+  //       .text('');
 
-    return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
-  }
+  //   return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
+  // }
 
-  let vizHidden = true
+  // let vizHidden = true
 
-  const progress = svg => {
-    let marker = svg
-      .append('rect')
-      .attr('class', 'progress hidden')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', 1)
-      .attr('height', tlHeight)
+  // const progress = svg => {
+  //   let marker = svg
+  //     .append('rect')
+  //     .attr('class', 'progress hidden')
+  //     .attr('x', 0)
+  //     .attr('y', 0)
+  //     .attr('width', 1)
+  //     .attr('height', tlHeight)
 
-  // return (data, transition) =>
-  //     (value = value
-  //       .data(data.statesRanked, d => d.state)
-  //       .join(
-  //         enter =>
-  //           enter
-  //             .append('text')
-  //             // change
-  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-  //             .attr('y', y.bandwidth() / 2)
-  //             .attr('x', 3)
-  //             .attr('dy', '0.25em')
-  //             .style('opacity', 0)
-  //             .text(d => (d.value ? d.value.smaRound : 0)),
-  //         update => update,
-  //         exit => exit.transition(transition).remove()
-  //       )
-  // .call(value => {
-    //         return value
-    //           .transition(transition)
-    //           .attr(
-    //             'transform',
-    //             d =>
-    //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-    //           )
-    //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-    //           .tween('text', d => {
-    //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
-    //             return prev.get(d) && d.value
-    //               ? !prev.get(d).value
-    //                 ? textTween(0, d.value.smaRound)
-    //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
-    //               : textTween(0, 0);
-    //           });
-    //       }));
+  // // return (data, transition) =>
+  // //     (value = value
+  // //       .data(data.statesRanked, d => d.state)
+  // //       .join(
+  // //         enter =>
+  // //           enter
+  // //             .append('text')
+  // //             // change
+  // //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
+  // //             .attr('y', y.bandwidth() / 2)
+  // //             .attr('x', 3)
+  // //             .attr('dy', '0.25em')
+  // //             .style('opacity', 0)
+  // //             .text(d => (d.value ? d.value.smaRound : 0)),
+  // //         update => update,
+  // //         exit => exit.transition(transition).remove()
+  // //       )
+  // // .call(value => {
+  //   //         return value
+  //   //           .transition(transition)
+  //   //           .attr(
+  //   //             'transform',
+  //   //             d =>
+  //   //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
+  //   //           )
+  //   //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
+  //   //           .tween('text', d => {
+  //   //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
+  //   //             return prev.get(d) && d.value
+  //   //               ? !prev.get(d).value
+  //   //                 ? textTween(0, d.value.smaRound)
+  //   //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
+  //   //               : textTween(0, 0);
+  //   //           });
+  //   //       }));
     
-    return keyframe => {
-      if (keyframe !== undefined) {
-        // console.log('marker', marker)
-        // console.log('marker', marker.node())
-        // console.log('keyframe.date', keyframe.date)
-        // console.log('tlX(keyframe.date)', tlX(keyframe.date))
+  //   return keyframe => {
+  //     if (keyframe !== undefined) {
+  //       // console.log('marker', marker)
+  //       // console.log('marker', marker.node())
+  //       // console.log('keyframe.date', keyframe.date)
+  //       // console.log('tlX(keyframe.date)', tlX(keyframe.date))
 
-        marker.attr('x', () => tlX(keyframe.date))
+  //       marker.attr('x', () => tlX(keyframe.date))
 
-        // marker = marker.data(keyframe)
-          // .attr('x', d => {
-          //   console.log(d)
-          //   console.log(tlX(d.usCasesSma[0]))
-          //   return tlX(d.usCasesSma[0])
-          // })
-          // .call(marker => {
-            // console.log('marker', marker.node())
+  //       // marker = marker.data(keyframe)
+  //         // .attr('x', d => {
+  //         //   console.log(d)
+  //         //   console.log(tlX(d.usCasesSma[0]))
+  //         //   return tlX(d.usCasesSma[0])
+  //         // })
+  //         // .call(marker => {
+  //           // console.log('marker', marker.node())
 
-            // marker.style('fill', 'orange')
+  //           // marker.style('fill', 'orange')
 
-            // return marker.attr('x', d => {
-            // // marker.attr('x', d => {
-            //   console.log('marker x:', tlX(d.usCasesSma[0]))
-            //   return tlX(d.usCasesSma[0])
-            // })
+  //           // return marker.attr('x', d => {
+  //           // // marker.attr('x', d => {
+  //           //   console.log('marker x:', tlX(d.usCasesSma[0]))
+  //           //   return tlX(d.usCasesSma[0])
+  //           // })
             
-            // return marker.transition().attr('x', d => {
-            //   console.log(d)
-            //   console.log(tlX(d.usCasesSma[0]))
-            //   return tlX(d.usCasesSma[0])
-            // })
-          // })
+  //           // return marker.transition().attr('x', d => {
+  //           //   console.log(d)
+  //           //   console.log(tlX(d.usCasesSma[0]))
+  //           //   return tlX(d.usCasesSma[0])
+  //           // })
+  //         // })
         
-        // d3.select('.tlBars').classed('hidden', false)
-        // // const selTl = d3.select('.tlBars')
-        // // selTl.classed('hidden', false)
-        // // console.log(selTl.node())
+  //       // d3.select('.tlBars').classed('hidden', false)
+  //       // // const selTl = d3.select('.tlBars')
+  //       // // selTl.classed('hidden', false)
+  //       // // console.log(selTl.node())
         
-        // keyframe.statesCasesStarted.forEach((val, key) => {
-        //   if (val) {
-        //     d3.select(`.f${fipsLookup[key]}.hidden`)
-        //       .classed('hidden', false)
-        //       .raise()
-        //       .attr('stroke', 'black')
-        //       .attr('fill', '#e8e8e8')
-        //       .transition().duration(750)
-        //       .attr('stroke', '#aaa')
-        //       .attr('fill', mapFill)
+  //       // keyframe.statesCasesStarted.forEach((val, key) => {
+  //       //   if (val) {
+  //       //     d3.select(`.f${fipsLookup[key]}.hidden`)
+  //       //       .classed('hidden', false)
+  //       //       .raise()
+  //       //       .attr('stroke', 'black')
+  //       //       .attr('fill', '#e8e8e8')
+  //       //       .transition().duration(750)
+  //       //       .attr('stroke', '#aaa')
+  //       //       .attr('fill', mapFill)
 
-        //   } else {
-        //     d3.select(`.f${fipsLookup[key]}`)
-        //       .classed('hidden', true)
-        //       .attr('stroke', 'none')
-        //       .attr('fill', 'none')
-        //   }
-        // })
-      } else {
-        // d3.selectAll('.stateShape').classed('hidden', true)
-        // d3.select('.spikeLegend').classed('hidden', true)
-        // d3.select('.colorLegend').classed('hidden', true)
-        // d3.select('.tlBars').classed('hidden', true)
-      }
-    }
-  }
+  //       //   } else {
+  //       //     d3.select(`.f${fipsLookup[key]}`)
+  //       //       .classed('hidden', true)
+  //       //       .attr('stroke', 'none')
+  //       //       .attr('fill', 'none')
+  //       //   }
+  //       // })
+  //     } else {
+  //       // d3.selectAll('.stateShape').classed('hidden', true)
+  //       // d3.select('.spikeLegend').classed('hidden', true)
+  //       // d3.select('.colorLegend').classed('hidden', true)
+  //       // d3.select('.tlBars').classed('hidden', true)
+  //     }
+  //   }
+  // }
 
-  const stateShapes = svg => {
-    return keyframe => {
-      if (keyframe !== undefined) {
-        vizHidden = false
-        d3.select('.spikeLegend').classed('hidden', false)
-        d3.select('.colorLegend').classed('hidden', false)
-        d3.select('.tlBars').classed('hidden', false)
-        d3.select('.progress').classed('hidden', false)
-        // const selTl = d3.select('.tlBars')
-        // selTl.classed('hidden', false)
-        // console.log(selTl.node())
+  // const stateShapes = svg => {
+  //   return keyframe => {
+  //     if (keyframe !== undefined) {
+  //       vizHidden = false
+  //       d3.select('.spikeLegend').classed('hidden', false)
+  //       d3.select('.colorLegend').classed('hidden', false)
+  //       d3.select('.tlBars').classed('hidden', false)
+  //       d3.select('.progress').classed('hidden', false)
+  //       // const selTl = d3.select('.tlBars')
+  //       // selTl.classed('hidden', false)
+  //       // console.log(selTl.node())
         
-        keyframe.statesCasesStarted.forEach((val, key) => {
-          if (val) {
-            d3.select(`.f${fipsLookup[key]}.hidden`)
-              .classed('hidden', false)
-              .raise()
-              .attr('stroke', 'black')
-              .attr('fill', '#e8e8e8')
-              .transition().duration(750)
-              .attr('stroke', '#aaa')
-              .attr('fill', mapFill)
+  //       keyframe.statesCasesStarted.forEach((val, key) => {
+  //         if (val) {
+  //           d3.select(`.f${fipsLookup[key]}.hidden`)
+  //             .classed('hidden', false)
+  //             .raise()
+  //             .attr('stroke', 'black')
+  //             .attr('fill', '#e8e8e8')
+  //             .transition().duration(750)
+  //             .attr('stroke', '#aaa')
+  //             .attr('fill', mapFill)
 
-          } else {
-            d3.select(`.f${fipsLookup[key]}`)
-              .classed('hidden', true)
-              .attr('stroke', 'none')
-              .attr('fill', 'none')
-          }
-        })
-      } else {
-        d3.selectAll('.stateShape').classed('hidden', true)
-        d3.select('.spikeLegend').classed('hidden', true)
-        d3.select('.colorLegend').classed('hidden', true)
-        d3.select('.tlBars').classed('hidden', true)
-        d3.select('.progress').classed('hidden', true)
-      }
-    }
-  }
+  //         } else {
+  //           d3.select(`.f${fipsLookup[key]}`)
+  //             .classed('hidden', true)
+  //             .attr('stroke', 'none')
+  //             .attr('fill', 'none')
+  //         }
+  //       })
+  //     } else {
+  //       d3.selectAll('.stateShape').classed('hidden', true)
+  //       d3.select('.spikeLegend').classed('hidden', true)
+  //       d3.select('.colorLegend').classed('hidden', true)
+  //       d3.select('.tlBars').classed('hidden', true)
+  //       d3.select('.progress').classed('hidden', true)
+  //     }
+  //   }
+  // }
 
   // const formatNumber = d3.format(",d")
 
@@ -1296,10 +1554,11 @@ async function getData() {
   // const updateAxis = axis(chartSvg);
   // const updateLabels = labels(chartSvg);
   // const updateValues = values(chartSvg);
-  const updateTicker = ticker(mapSvg)
-  const updateStateShapes = stateShapes(mapSvg)
-  const updateProgress = progress(mapSvg);
-  // const update
+
+  // ACTIVE ONES
+  // const updateTicker = ticker(mapSvg)
+  // const updateStateShapes = stateShapes(mapSvg)
+  // const updateProgress = progress(mapSvg);
 
   function scrub(keyframe) {
     // const transition = chartSvg.transition()
@@ -1350,25 +1609,26 @@ async function getData() {
     offset: 0.4
   });
 
-  enterView({
-    selector: '.dateDiv',
-    enter: function(el) {
-      const frame = keyFrames[Number(el.id)]
-      // prevCounties = prevKF.get(frame.counties) || frame.counties
-      scrub(frame)
-    },
-    progress: function(el, progress) {
-      updateSpikes(keyFrames[Number(el.id)], progress)
-      // console.log(progress)
-    },
-    exit: function(el) {
-      const frame = keyFrames[Number(el.id)]
-      scrub(frame)
-      prevCounties = prevKF.get(frame.counties) || frame.counties
-    },
-    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-    offset: 0.4
-  });
+  // enterView({
+  //   selector: '.dateDiv',
+  //   enter: function(el) {
+  //     console.log('entered!')
+  //     const frame = keyFrames[Number(el.id)]
+  //     // prevCounties = prevKF.get(frame.counties) || frame.counties
+  //     scrub(frame)
+  //   },
+  //   progress: function(el, progress) {
+  //     updateSpikes(keyFrames[Number(el.id)], progress)
+  //     // console.log(progress)
+  //   },
+  //   exit: function(el) {
+  //     const frame = keyFrames[Number(el.id)]
+  //     scrub(frame)
+  //     prevCounties = prevKF.get(frame.counties) || frame.counties
+  //   },
+  //   // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+  //   offset: 0.4
+  // });
 
   enterView({
     selector: '.introParas',
@@ -1376,7 +1636,6 @@ async function getData() {
     },
     progress: function(el, progress) {
       if (!vizHidden) {
-        console.log('Viz Not Hidden')
         vizHidden = true
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
