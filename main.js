@@ -483,10 +483,10 @@ async function getData() {
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
       return `${openingTitleBounds.height + introBounds.height}px`
     })
-    .style('opacity', 0.0)
+    // .style('opacity', 0.0)
 
   const frames = dates.map(d => ({date: d}))
-  console.log('frames1', frames)
+  console.log('frames1', frames[0])
 
   const keyFrames = frames
 
@@ -498,47 +498,71 @@ async function getData() {
     .attr('height', 10)
     .attr('width', 20)
     .style('padding', '50px')
+
+    .style('border', '1px solid green')
+    .style('opacity', 5)
     .text(d => d.date)
+
+  const stepsSelection = d3.selectAll('.step')
+    .data(chapters)
+    .call(div => {
+      div.filter(d => d.id != 0 && d.id != 1)
+        .style('position', 'absolute')
+        .style('top', d => {
+          const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
+          if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
+        })
+    })
+
+  d3.select('#footer')
+    .style('position', 'absolute')
+    .style('top', d => {
+      const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
+      return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
+    })
+
 
 // ------------------------------------------------------
 // // DRAWING: TIMELINE
 
-const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
-const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+  const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
+  const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+  const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
 
-const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
-const color = d3.scaleSequential(interpolator)
-  // .domain([0, 2366])
-  .domain([0, maxPerHundThouCounties])
-  .clamp(true)
-  .nice()
+  const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  const color = d3.scaleSequential(interpolator)
+    // .domain([0, 2366])
+    .domain([0, maxPerHundThouCounties])
+    .clamp(true)
+    .nice()
 
-const tlWidth = mapWidth - colorLegendWidth
-const tlHeight = 50
-const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
+  const tlWidth = mapWidth - colorLegendWidth
+  const tlHeight = 50
+  const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
 
-const tlX = d3.scaleBand()
-  .domain(usCasesSma.map(d => d[0]))
-  .range([tlMargin.left, tlWidth - tlMargin.right])
+  const tlX = d3.scaleBand()
+    .domain(usCasesSma.map(d => d[0]))
+    .range([tlMargin.left, tlWidth - tlMargin.right])
 
-const tlY = d3.scaleLinear()
-  .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
-  .range([tlHeight - tlMargin.bottom, tlMargin.top])
+  const tlY = d3.scaleLinear()
+    .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
+    .range([tlHeight - tlMargin.bottom, tlMargin.top])
 
-mapSvg.append('g')
-  .attr('class', 'tlBars hidden')
-  .selectAll('rect')
- .data(usCasesSma)
-  .join('rect')
-  .attr('x', d => tlX(d[0]))
-  .attr('y', d => tlY(d[1].smaRound))
-  .attr('width', tlX.bandwidth())
-  .attr('height', d => tlY(0) - tlY(d[1].smaRound))
-  .attr('fill', d => color(d[1].perCapita))
+  mapSvg.append('g')
+    .attr('class', 'tlBars hidden')
+    .selectAll('rect')
+  .data(usCasesSma)
+    .join('rect')
+    .attr('x', d => tlX(d[0]))
+    .attr('y', d => tlY(d[1].smaRound))
+    .attr('width', tlX.bandwidth())
+    .attr('height', d => tlY(0) - tlY(d[1].smaRound))
+    .attr('fill', d => color(d[1].perCapita))
 
 // ------------------------------------------------------
 // DRAW FUNCTIONS
+
+  let vizHidden = true
 
   const ticker = svg => {
     const now = svg.append('g').append("text")
@@ -554,8 +578,6 @@ mapSvg.append('g')
 
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
-
-  let vizHidden = true
 
   const progress = svg => {
     let marker = svg
@@ -659,10 +681,6 @@ mapSvg.append('g')
         //   }
         // })
       } else {
-        // d3.selectAll('.stateShape').classed('hidden', true)
-        // d3.select('.spikeLegend').classed('hidden', true)
-        // d3.select('.colorLegend').classed('hidden', true)
-        // d3.select('.tlBars').classed('hidden', true)
       }
     }
   }
@@ -675,10 +693,8 @@ mapSvg.append('g')
         d3.select('.colorLegend').classed('hidden', false)
         d3.select('.tlBars').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
-        // const selTl = d3.select('.tlBars')
-        // selTl.classed('hidden', false)
-        // console.log(selTl.node())
         
+        if (keyframe.statesCasesStarted)
         keyframe.statesCasesStarted.forEach((val, key) => {
           if (val) {
             d3.select(`.f${fipsLookup[key]}.hidden`)
@@ -711,7 +727,26 @@ mapSvg.append('g')
 // // UPDATE FUNCTIONS
   const updateTicker = ticker(mapSvg)
   const updateStateShapes = stateShapes(mapSvg)
-  const updateProgress = progress(mapSvg);
+  const updateProgress = progress(mapSvg)
+
+  // let prevCounties
+
+  const updateSpikes = (frame, t) => {
+    // console.log(t)
+    try {
+      const prevCounties = prevKF.get(frame).counties || frame.counties
+      frame.counties.forEach((d, i) => {
+        const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+        // console.log('tweenCount:', tweenCount)
+        d.splice(3, 1, tweenCount);
+      });
+      draw(frame);
+    } catch {
+      if (frame.counties)
+      frame.counties.forEach(d => d.splice(3, 1, d[1]));
+    }
+  }
+
     
   enterView({
     selector: '.dateDiv',
@@ -736,6 +771,8 @@ mapSvg.append('g')
 
 //---------------------------------------------------------
 // // COVID DATA
+
+console.log('just before fetches')
 
   // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
   
@@ -895,7 +932,7 @@ mapSvg.append('g')
   
   //   d.counties = ['one', 'two']
   // })
-  console.log('frames2', frames)
+  console.log('frames2', frames[0])
 
   // OLD FRAMES
   // const frames = dates.map(date => ({
@@ -1095,23 +1132,23 @@ mapSvg.append('g')
   //   // .style('border-top', '1px solid green')
   //   .text(d => d.date)
 
-  d3.selectAll('.step')
-    .data(chapters)
-    .call(div => {
-      div.filter(d => d.id != 0 && d.id != 1)
-        .style('position', 'absolute')
-        .style('top', d => {
-          const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
-          if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
-        })
-    })
+  // d3.selectAll('.step')
+  //   .data(chapters)
+  //   .call(div => {
+  //     div.filter(d => d.id != 0 && d.id != 1)
+  //       .style('position', 'absolute')
+  //       .style('top', d => {
+  //         const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
+  //         if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
+  //       })
+  //   })
 
-  d3.select('#footer')
-    .style('position', 'absolute')
-    .style('top', d => {
-      const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
-      return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
-    })
+  // d3.select('#footer')
+  //   .style('position', 'absolute')
+  //   .style('top', d => {
+  //     const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
+  //     return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
+  //   })
 
 
   // ------------------------------------------------------
@@ -1149,23 +1186,6 @@ mapSvg.append('g')
   //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
   //   }
   // }
-
-  // let prevCounties
-
-  const updateSpikes = (frame, t) => {
-    // console.log(t)
-    try {
-      const prevCounties = prevKF.get(frame).counties || frame.counties
-      frame.counties.forEach((d, i) => {
-        const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-        // console.log('tweenCount:', tweenCount)
-        d.splice(3, 1, tweenCount);
-      });
-      draw(frame);
-    } catch {
-      frame.counties.forEach(d => d.splice(3, 1, d[1]));
-    }
-  }
 
   // ------------------------------------------------------
   // // DRAWING: SPIKE LEGEND
