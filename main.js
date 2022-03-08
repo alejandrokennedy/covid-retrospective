@@ -483,7 +483,7 @@ async function getData() {
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
       return `${openingTitleBounds.height + introBounds.height}px`
     })
-    // .style('opacity', 0.0)
+    .style('opacity', 0.3)
 
   const frames = dates.map(d => ({date: d}))
   console.log('frames1', frames[0])
@@ -503,7 +503,7 @@ async function getData() {
     .style('opacity', 5)
     .text(d => d.date)
 
-  const stepsSelection = d3.selectAll('.step')
+  const stepsSelection = await d3.selectAll('.step')
     .data(chapters)
     .call(div => {
       div.filter(d => d.id != 0 && d.id != 1)
@@ -748,7 +748,7 @@ async function getData() {
   }
 
     
-  enterView({
+  await enterView({
     selector: '.dateDiv',
     enter: function(el) {
       console.log('entered!')
@@ -772,7 +772,7 @@ async function getData() {
 //---------------------------------------------------------
 // // COVID DATA
 
-console.log('just before fetches')
+  console.log('just before fetches')
 
   // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
   
@@ -1043,7 +1043,7 @@ console.log('just before fetches')
   const legendMax = 1000
   const maxColor = color(legendMax)
 
-  console.log('legendMax', legendMax)
+  // console.log('legendMax', legendMax)
 
   const intoThirds = Math.round(legendMax / 3)
   const maxMinusThird = color(legendMax - intoThirds)
@@ -1628,27 +1628,6 @@ console.log('just before fetches')
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
   });
-
-  // enterView({
-  //   selector: '.dateDiv',
-  //   enter: function(el) {
-  //     console.log('entered!')
-  //     const frame = keyFrames[Number(el.id)]
-  //     // prevCounties = prevKF.get(frame.counties) || frame.counties
-  //     scrub(frame)
-  //   },
-  //   progress: function(el, progress) {
-  //     updateSpikes(keyFrames[Number(el.id)], progress)
-  //     // console.log(progress)
-  //   },
-  //   exit: function(el) {
-  //     const frame = keyFrames[Number(el.id)]
-  //     scrub(frame)
-  //     prevCounties = prevKF.get(frame.counties) || frame.counties
-  //   },
-  //   // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-  //   offset: 0.4
-  // });
 
   enterView({
     selector: '.introParas',
