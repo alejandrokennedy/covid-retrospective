@@ -20,7 +20,7 @@ const parseDate = d3.timeParse("%Y-%m-%d")
 
 const body = d3.select('body')
   .style('margin', '0 auto')
-  .style('font-family', 'helvetica')
+  // .style('font-family', 'helvetica')
   .style('font-size', '12px')
   .style('overflow', 'auto')
 
@@ -505,7 +505,6 @@ async function getData() {
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
       return `${openingTitleBounds.height + introBounds.height}px`
     })
-    .style('opacity', 0.3)
 
   const frames = dates.map(d => ({date: d}))
   console.log('frames1', frames[0])
@@ -520,9 +519,8 @@ async function getData() {
     .attr('height', 10)
     .attr('width', 20)
     .style('padding', '50px')
-
-    .style('border', '1px solid pink')
-    .style('opacity', 5)
+    // .style('border', '1px solid pink')
+    .style('opacity', 0.0)
     .text(d => d.date)
 
   const stepsSelection = d3.selectAll('.step')
@@ -592,7 +590,10 @@ async function getData() {
       .style("font", `bold ${10}px var(--sans-serif)`)
       .style("font-variant-numeric", "tabular-nums")
       .style("text-anchor", "middle")
+      .style("font-family", `helvetica`)
+      .style("font-weight", `100`)
       .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+      .style('stroke', '#555')
       .text('');
 
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')

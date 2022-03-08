@@ -8,8 +8,12 @@
 
 	<!-- FONTS -->
 	<link rel="preload" as="font" href="./Palatino.woff" type="font/woff2" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="preload" as="font" crossorigin="anonymous">
-	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<!-- <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="preload" as="font" crossorigin="anonymous"> -->
+	<!-- <link rel="preconnect" href="https://fonts.gstatic.com"> -->
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="stylesheet">
 
 	<!-- LIBS -->
 	<script src='https://unpkg.com/topojson@3.0.2/dist/topojson.js'></script>
@@ -38,19 +42,20 @@
 				url('./Palatino.woff') format('woff');
 		}
 
-		@font-face {
+		/* @font-face {
 			font-family: 'Raleway';
 			font-weight: normal;
 			font-style: normal;
-			font-display: swap; /* Read next point */
+			font-display: swap;
 			src: local('Raleway'),
 				url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap') format('woff');
-		}
+		} */
 
 		body {
 			margin: 0;
 			padding: 0;
 			font-family: 'Palatino', 'Georgia', 'serif';
+			/* font-family: 'Raleway', sans-serif; */
 		}
 
 		a,
@@ -219,7 +224,7 @@
 
 		.firstcharacter {
 			float: left;
-			font-family: 'Raleway';
+			font-family: 'Raleway', sans-serif;
 			font-size: 75px;
 			line-height: 60px;
 			padding-top: 4px;
