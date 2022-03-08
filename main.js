@@ -499,7 +499,7 @@ async function getData() {
     .attr('width', 20)
     .style('padding', '50px')
 
-    .style('border', '1px solid green')
+    .style('border', '1px solid pink')
     .style('opacity', 5)
     .text(d => d.date)
 
