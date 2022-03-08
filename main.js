@@ -445,12 +445,6 @@ async function getData() {
         perHundThou = smaRound / popPerHundThou;
       }
   
-      // const popPerHundThou = data[0].county
-      //   ? countiesPop.get(id(d)) / 100000
-      //   : statesPop.get(d.fips) / 100000;
-  
-      // const perHundThou = smaRound / popPerHundThou;
-  
       returnMap.set(d.date, {
         newCases: newCases,
         sma: sma,
@@ -566,15 +560,13 @@ async function getData() {
 
   const ticker = svg => {
     const now = svg.append('g').append("text")
-        // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
-        .attr('class', 'tickerText')
-        .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
-        .style("font", `bold ${10}px var(--sans-serif)`)
-        .style("font-variant-numeric", "tabular-nums")
-        .style("text-anchor", "middle")
-        .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-        // .text(formatDate(parseDate(keyFrames[0].date)));
-        .text('');
+      .attr('class', 'tickerText')
+      .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
+      .style("font", `bold ${10}px var(--sans-serif)`)
+      .style("font-variant-numeric", "tabular-nums")
+      .style("text-anchor", "middle")
+      .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+      .text('');
 
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
@@ -587,100 +579,9 @@ async function getData() {
       .attr('y', 0)
       .attr('width', 1)
       .attr('height', tlHeight)
-
-  // return (data, transition) =>
-  //     (value = value
-  //       .data(data.statesRanked, d => d.state)
-  //       .join(
-  //         enter =>
-  //           enter
-  //             .append('text')
-  //             // change
-  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-  //             .attr('y', y.bandwidth() / 2)
-  //             .attr('x', 3)
-  //             .attr('dy', '0.25em')
-  //             .style('opacity', 0)
-  //             .text(d => (d.value ? d.value.smaRound : 0)),
-  //         update => update,
-  //         exit => exit.transition(transition).remove()
-  //       )
-  // .call(value => {
-    //         return value
-    //           .transition(transition)
-    //           .attr(
-    //             'transform',
-    //             d =>
-    //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-    //           )
-    //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-    //           .tween('text', d => {
-    //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
-    //             return prev.get(d) && d.value
-    //               ? !prev.get(d).value
-    //                 ? textTween(0, d.value.smaRound)
-    //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
-    //               : textTween(0, 0);
-    //           });
-    //       }));
-    
     return keyframe => {
       if (keyframe !== undefined) {
-        // console.log('marker', marker)
-        // console.log('marker', marker.node())
-        // console.log('keyframe.date', keyframe.date)
-        // console.log('tlX(keyframe.date)', tlX(keyframe.date))
-
         marker.attr('x', () => tlX(keyframe.date))
-
-        // marker = marker.data(keyframe)
-          // .attr('x', d => {
-          //   console.log(d)
-          //   console.log(tlX(d.usCasesSma[0]))
-          //   return tlX(d.usCasesSma[0])
-          // })
-          // .call(marker => {
-            // console.log('marker', marker.node())
-
-            // marker.style('fill', 'orange')
-
-            // return marker.attr('x', d => {
-            // // marker.attr('x', d => {
-            //   console.log('marker x:', tlX(d.usCasesSma[0]))
-            //   return tlX(d.usCasesSma[0])
-            // })
-            
-            // return marker.transition().attr('x', d => {
-            //   console.log(d)
-            //   console.log(tlX(d.usCasesSma[0]))
-            //   return tlX(d.usCasesSma[0])
-            // })
-          // })
-        
-        // d3.select('.tlBars').classed('hidden', false)
-        // // const selTl = d3.select('.tlBars')
-        // // selTl.classed('hidden', false)
-        // // console.log(selTl.node())
-        
-        // keyframe.statesCasesStarted.forEach((val, key) => {
-        //   if (val) {
-        //     d3.select(`.f${fipsLookup[key]}.hidden`)
-        //       .classed('hidden', false)
-        //       .raise()
-        //       .attr('stroke', 'black')
-        //       .attr('fill', '#e8e8e8')
-        //       .transition().duration(750)
-        //       .attr('stroke', '#aaa')
-        //       .attr('fill', mapFill)
-
-        //   } else {
-        //     d3.select(`.f${fipsLookup[key]}`)
-        //       .classed('hidden', true)
-        //       .attr('stroke', 'none')
-        //       .attr('fill', 'none')
-        //   }
-        // })
-      } else {
       }
     }
   }
@@ -730,14 +631,11 @@ async function getData() {
   const updateProgress = progress(mapSvg)
 
   // let prevCounties
-
   const updateSpikes = (frame, t) => {
-    // console.log(t)
     try {
       const prevCounties = prevKF.get(frame).counties || frame.counties
       frame.counties.forEach((d, i) => {
         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-        // console.log('tweenCount:', tweenCount)
         d.splice(3, 1, tweenCount);
       });
       draw(frame);
@@ -748,7 +646,7 @@ async function getData() {
   }
 
     
-  await enterView({
+  enterView({
     selector: '.dateDiv',
     enter: function(el) {
       console.log('entered!')
@@ -764,6 +662,46 @@ async function getData() {
       const frame = keyFrames[Number(el.id)]
       scrub(frame)
       prevCounties = prevKF.get(frame.counties) || frame.counties
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  })
+
+  enterView({
+    selector: '.step',
+    enter: function(el) {
+      el.classList.add('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id == el.id);
+    },
+    progress: function(el, progress) {
+    },
+    exit: function(el) {
+      el.classList.remove('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id === el.id);
+      const prevChapter = config.chapters.find(chap => chap.id === (Number(el.id) - 1).toString());
+      // map[prevChapter.mapAnimation || 'flyTo'](ua.device.type === "Mobile" ? prevChapter.mLocation : prevChapter.location);
+      // if (prevChapter.onChapterEnter.length > 0) prevChapter.onChapterEnter.forEach(setLayerOpacity)
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
+
+  enterView({
+    selector: '.introParas',
+    enter: function(el) {
+    },
+    progress: function(el, progress) {
+      if (!vizHidden) {
+        vizHidden = true
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.select('.colorLegend').classed('hidden', true)
+        d3.select('.tlBars').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
+        d3.select('.tickerText').text('')
+      }
+    },
+    exit: function(el) {
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
@@ -789,9 +727,6 @@ async function getData() {
   const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
 
   // ------------------------------------------------------
-  // // MAP DATA
-
-  // ------------------------------------------------------
   // // COVID DATA
 
   // // // COVID DATA FUNCTIONS & HELPER VARIABLES
@@ -814,7 +749,6 @@ async function getData() {
     return feature && path.centroid(feature);
   }
 
-
   // // // COVID DATA TRANSFORMATIONS
 
   const rawStates = rawStatesUnfiltered.filter(d => {
@@ -831,9 +765,6 @@ async function getData() {
     .filter(([, position]) => position)
   )
 
-  // const dates = Array.from(d3.group(rawStates, d => d.date).keys())
-  // const dates = Array.from(d3.group(rawCounties, d => d.date).keys())
-
   const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
   const fipsLookup = {}
@@ -845,10 +776,6 @@ async function getData() {
 
   // ------------------------------------------------------
   // // POPULATION DATA
-
-  // const statesPop = new Map(
-  //   statePop.map(d => [d3.format('02')(d.STATE), +d.POPESTIMATE2019])
-  // )
 
   const cityCounties = [
     {
@@ -927,37 +854,7 @@ async function getData() {
     ])
   })
 
-  // frames.forEach(d => {
-  //   d.statesCasesStarted = 'hi'
-  
-  //   d.counties = ['one', 'two']
-  // })
   console.log('frames2', frames[0])
-
-  // OLD FRAMES
-  // const frames = dates.map(date => ({
-  //   date: date,
-
-  //   statesCasesStarted: new Map(statesList.map(state => {
-  //     const obj = statesByPlace.get(state).get(date)
-  //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
-  //     return [
-  //       state,
-  //       statesMap.get(state)
-  //     ]
-  //   })),
-  
-  //   counties: Array.from(countyPositions, ([key, value]) => key).map(county => [
-  //     county,
-  //     countiesByPlace.get(county).get(date)
-  //       ? countiesByPlace.get(county).get(date)['smaRound']
-  //       : 0,
-  //     countiesByPlace.get(county).get(date)
-  //       ? countiesByPlace.get(county).get(date)['perHundThou']
-  //       : 0
-  //   ]),
-  // }))
-
 
   // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
   // const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
@@ -992,9 +889,6 @@ async function getData() {
     return obj
   }
 
-  // console.log('maxPerHundThouCounties', maxPerHundThouCounties)
-  // console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
-
   const length = d3.scaleLinear()
     .domain([0, maxDailyCasesCounties])
     .range([0, spikeMax])
@@ -1011,7 +905,6 @@ async function getData() {
   function findLegendMax() {
     let i = 550
     let arr = testMaxes(i)
-
     if (arr.length === 0) {
       while (arr.length === 0) {
         i -= 10
@@ -1019,14 +912,12 @@ async function getData() {
       }
       return i
     }
-    
     while (arr.length > 0) {
       i += 10
       arr = testMaxes(i)
     }
     return i
   }
-
   function testMaxes(num) {
     let arr = []
     for (let date of frames) {
@@ -1042,17 +933,14 @@ async function getData() {
   // const legendMax = findLegendMax()
   const legendMax = 1000
   const maxColor = color(legendMax)
-
   // console.log('legendMax', legendMax)
 
   const intoThirds = Math.round(legendMax / 3)
   const maxMinusThird = color(legendMax - intoThirds)
   const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
-
   // console.log(maxMinusTwoThirds)
   // console.log(maxMinusThird)
   // console.log(maxColor)
-  
 
   const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
   const legendColor = d3.scaleSequential(interpolator)
@@ -1060,7 +948,6 @@ async function getData() {
     .domain([0, legendMax])
     .clamp(true)
     .nice()
-
 
   legend({
     // color: color,
@@ -1076,80 +963,7 @@ async function getData() {
   // ------------------------------------------------------
   // // DATA: RANKING
   
-  // function rank(value) {
-  //   const data = Array.from(states, state => ({ state, value: value(state) }));
-  //   data.sort((a, b) => {
-  //     const aVal = a.value ? a.value.smaRound : 0;
-  //     const bVal = b.value ? b.value.smaRound : 0;
-  //     return d3.descending(aVal, bVal);
-  //   });
-  //   for (let i = 0; i < data.length; ++i) data[i].rank = i;
-  //   return data;
-  // }
-
-  // const protoKeyFrames = frames.map(frame => {
-  //   frame.statesRanked = rank(state => frame.states.get(state));
-  //   return frame;
-  // })
-  // const keyFrames = protoKeyFrames
-
-  // const keyFrames = frames
   const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
-  
-  // const nameFrames = d3.groups(keyFrames.flatMap(data => data.statesRanked), d => d.state)
-  // prev = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])))
-  // next = new Map(nameFrames.flatMap(([, data]) => d3.pairs(data)))
-
-  // ------------------------------------------------------
-  // DRAWING
-  // ------------------------------------------------------
-
-  // d3.select('#scrubInput')
-  //   .attr('max', keyFrames.length - 1)
-  //   .style('width', () => `${mapWidth / 4}px`)
-
-  // // DRAWING: DATE DIVS
-
-  // const dateContainer = d3.select('#story')
-  //   .append('div')
-  //   .attr('id', 'dateContainer')
-  //   .style('position', 'absolute')
-  //   .style('top', d => {
-  //     const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
-  //     const introBounds = d3.select('.intro').node().getBoundingClientRect()
-  //     return `${openingTitleBounds.height + introBounds.height}px`
-  //   })
-  //   .style('opacity', 0.0)
-
-  // const dateDivs = dateContainer.selectAll('.dateDiv')
-  //   .data(keyFrames)
-  //   .join('div')
-  //   .attr('class', 'dateDiv')
-  //   .attr('id', (d, i) => i)
-  //   .attr('height', 10)
-  //   .attr('width', 20)
-  //   .style('padding', '50px')
-  //   // .style('border-top', '1px solid green')
-  //   .text(d => d.date)
-
-  // d3.selectAll('.step')
-  //   .data(chapters)
-  //   .call(div => {
-  //     div.filter(d => d.id != 0 && d.id != 1)
-  //       .style('position', 'absolute')
-  //       .style('top', d => {
-  //         const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
-  //         if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
-  //       })
-  //   })
-
-  // d3.select('#footer')
-  //   .style('position', 'absolute')
-  //   .style('top', d => {
-  //     const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
-  //     return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
-  //   })
-
 
   // ------------------------------------------------------
   // // DRAWING: SPIKES
@@ -1219,436 +1033,11 @@ async function getData() {
     .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 13})`)
     .text('New Cases')
 
-  //------------------------------------------------------
-  // BARS
-  // ------------------------------------------------------
-  // // BARS: FUNCTIONS
-
-  // const margin = { top: 10, right: 50, bottom: 0, left: 100 }
-
-  // const x = d3.scaleLinear()
-  //   .domain([0, 1])
-  //   .range([margin.left, width - margin.right])
-
-  // const y = d3.scaleBand()
-  //   .domain(d3.range(states.length))
-  //   .rangeRound([margin.top, height - margin.top - margin.bottom])
-  //   .padding(0.1)
-
-  // const xAxis = d3
-  //   .axisTop(x)
-  //   .tickSizeOuter(0)
-  //   .tickSizeInner(-height + margin.top + margin.bottom)
-
-  // const axis = svg => {
-  //   const g = svg.append('g').attr('transform', `translate(0,${margin.top})`);
-  
-  //   return (_, transition, largestBarVal) => {
-  //     const min = Math.floor(largestBarVal);
-  //     const max = width / 160;
-  //     xAxis.ticks(min > max ? max : min);
-  
-  //     g.transition(transition).call(xAxis);
-  //     g.selectAll('.tick line').attr('stroke', 'white');
-  //     g.select('.domain').remove();
-  //   };
-  // }
-
-  // const labels = svg => {
-  //   let label = svg
-  //     .append('g')
-  //     .style("font", "bold 12px var(--sans-serif)")
-  //     .style("font-variant-numeric", "tabular-nums")
-  //     .attr('text-anchor', 'end')
-  //     .selectAll('text');
-  
-  //   return (data, transition) =>
-  //     (label = label
-  //       .data(data.statesRanked, d => d.state)
-  //       .join(
-  //         enter =>
-  //           enter
-  //             .append('text')
-  //             // change
-  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-  //             .attr('y', y.bandwidth() / 2)
-  //             .attr('x', -4)
-  //             .attr('dy', '0.25em')
-  //             // .attr('text-anchor', 'end')
-  //             .style('opacity', 0)
-  //             .text(d => d.state),
-  //         update => update,
-  //         exit => exit.transition(transition).remove()
-  //       )
-  //       .call(label =>
-  //         label
-  //           .transition(transition)
-  //           .attr(
-  //             'transform',
-  //             d =>
-  //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-  //           )
-  //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-  //       ));
-  // }
-
-  // const values = svg => {
-  //   let value = svg
-  //     .append('g')
-  //     .style("font", "12px var(--sans-serif)")
-  //     .style("font-variant-numeric", "tabular-nums")
-  //     .attr('text-anchor', 'start')
-  //     .selectAll('text');
-  
-  //   return (data, transition) =>
-  //     (value = value
-  //       .data(data.statesRanked, d => d.state)
-  //       .join(
-  //         enter =>
-  //           enter
-  //             .append('text')
-  //             // change
-  //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-  //             .attr('y', y.bandwidth() / 2)
-  //             .attr('x', 3)
-  //             .attr('dy', '0.25em')
-  //             .style('opacity', 0)
-  //             .text(d => (d.value ? d.value.smaRound : 0)),
-  //         update => update,
-  //         exit => exit.transition(transition).remove()
-  //       )
-  //       .call(value => {
-  //         return value
-  //           .transition(transition)
-  //           .attr(
-  //             'transform',
-  //             d =>
-  //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-  //           )
-  //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-  //           .tween('text', d => {
-  //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
-  //             return prev.get(d) && d.value
-  //               ? !prev.get(d).value
-  //                 ? textTween(0, d.value.smaRound)
-  //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
-  //               : textTween(0, 0);
-  //           });
-  //       }));
-  // }
-
-  // function textTween(a, b) {
-  //   const i = d3.interpolateNumber(a, b);
-  //   return function(t) {
-  //     this.textContent = formatNumber(i(t));
-  //   };
-  // }
-
-
-
-    // const timeline = svg => {
-  //   let timelineMarker = svg.append('g')
-  //     .selectAll('rect')
-
-    // return (data, transition) => {
-    //   return timeline = timeline
-    //     .data()
-    // }
-  // }
-
-  // ------------------------------------------------------
-  // // DRAWING: TICKER + STATESHAPES
-
-  // const ticker = svg => {
-  //   const now = svg.append('g').append("text")
-  //       // .attr("transform", `translate(${mapWidth * 0.677},${mapHeight - mapHeight / 30})`)
-  //       .attr('class', 'tickerText')
-  //       .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
-  //       .style("font", `bold ${10}px var(--sans-serif)`)
-  //       .style("font-variant-numeric", "tabular-nums")
-  //       .style("text-anchor", "middle")
-  //       .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-  //       // .text(formatDate(parseDate(keyFrames[0].date)));
-  //       .text('');
-
-  //   return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
-  // }
-
-  // let vizHidden = true
-
-  // const progress = svg => {
-  //   let marker = svg
-  //     .append('rect')
-  //     .attr('class', 'progress hidden')
-  //     .attr('x', 0)
-  //     .attr('y', 0)
-  //     .attr('width', 1)
-  //     .attr('height', tlHeight)
-
-  // // return (data, transition) =>
-  // //     (value = value
-  // //       .data(data.statesRanked, d => d.state)
-  // //       .join(
-  // //         enter =>
-  // //           enter
-  // //             .append('text')
-  // //             // change
-  // //             .attr('transform', d => `translate(${(x(0), y(d.rank))})`)
-  // //             .attr('y', y.bandwidth() / 2)
-  // //             .attr('x', 3)
-  // //             .attr('dy', '0.25em')
-  // //             .style('opacity', 0)
-  // //             .text(d => (d.value ? d.value.smaRound : 0)),
-  // //         update => update,
-  // //         exit => exit.transition(transition).remove()
-  // //       )
-  // // .call(value => {
-  //   //         return value
-  //   //           .transition(transition)
-  //   //           .attr(
-  //   //             'transform',
-  //   //             d =>
-  //   //               `translate(${d.value ? x(d.value.smaRound) : x(0)}, ${y(d.rank)})`
-  //   //           )
-  //   //           .style('opacity', d => (d.value.smaRound === 0 ? 0 : 1))
-  //   //           .tween('text', d => {
-  //   //             if (!prev.get(d) && d.value) return textTween(0, d.value.smaRound);
-  //   //             return prev.get(d) && d.value
-  //   //               ? !prev.get(d).value
-  //   //                 ? textTween(0, d.value.smaRound)
-  //   //                 : textTween(prev.get(d).value.smaRound, d.value.smaRound)
-  //   //               : textTween(0, 0);
-  //   //           });
-  //   //       }));
-    
-  //   return keyframe => {
-  //     if (keyframe !== undefined) {
-  //       // console.log('marker', marker)
-  //       // console.log('marker', marker.node())
-  //       // console.log('keyframe.date', keyframe.date)
-  //       // console.log('tlX(keyframe.date)', tlX(keyframe.date))
-
-  //       marker.attr('x', () => tlX(keyframe.date))
-
-  //       // marker = marker.data(keyframe)
-  //         // .attr('x', d => {
-  //         //   console.log(d)
-  //         //   console.log(tlX(d.usCasesSma[0]))
-  //         //   return tlX(d.usCasesSma[0])
-  //         // })
-  //         // .call(marker => {
-  //           // console.log('marker', marker.node())
-
-  //           // marker.style('fill', 'orange')
-
-  //           // return marker.attr('x', d => {
-  //           // // marker.attr('x', d => {
-  //           //   console.log('marker x:', tlX(d.usCasesSma[0]))
-  //           //   return tlX(d.usCasesSma[0])
-  //           // })
-            
-  //           // return marker.transition().attr('x', d => {
-  //           //   console.log(d)
-  //           //   console.log(tlX(d.usCasesSma[0]))
-  //           //   return tlX(d.usCasesSma[0])
-  //           // })
-  //         // })
-        
-  //       // d3.select('.tlBars').classed('hidden', false)
-  //       // // const selTl = d3.select('.tlBars')
-  //       // // selTl.classed('hidden', false)
-  //       // // console.log(selTl.node())
-        
-  //       // keyframe.statesCasesStarted.forEach((val, key) => {
-  //       //   if (val) {
-  //       //     d3.select(`.f${fipsLookup[key]}.hidden`)
-  //       //       .classed('hidden', false)
-  //       //       .raise()
-  //       //       .attr('stroke', 'black')
-  //       //       .attr('fill', '#e8e8e8')
-  //       //       .transition().duration(750)
-  //       //       .attr('stroke', '#aaa')
-  //       //       .attr('fill', mapFill)
-
-  //       //   } else {
-  //       //     d3.select(`.f${fipsLookup[key]}`)
-  //       //       .classed('hidden', true)
-  //       //       .attr('stroke', 'none')
-  //       //       .attr('fill', 'none')
-  //       //   }
-  //       // })
-  //     } else {
-  //       // d3.selectAll('.stateShape').classed('hidden', true)
-  //       // d3.select('.spikeLegend').classed('hidden', true)
-  //       // d3.select('.colorLegend').classed('hidden', true)
-  //       // d3.select('.tlBars').classed('hidden', true)
-  //     }
-  //   }
-  // }
-
-  // const stateShapes = svg => {
-  //   return keyframe => {
-  //     if (keyframe !== undefined) {
-  //       vizHidden = false
-  //       d3.select('.spikeLegend').classed('hidden', false)
-  //       d3.select('.colorLegend').classed('hidden', false)
-  //       d3.select('.tlBars').classed('hidden', false)
-  //       d3.select('.progress').classed('hidden', false)
-  //       // const selTl = d3.select('.tlBars')
-  //       // selTl.classed('hidden', false)
-  //       // console.log(selTl.node())
-        
-  //       keyframe.statesCasesStarted.forEach((val, key) => {
-  //         if (val) {
-  //           d3.select(`.f${fipsLookup[key]}.hidden`)
-  //             .classed('hidden', false)
-  //             .raise()
-  //             .attr('stroke', 'black')
-  //             .attr('fill', '#e8e8e8')
-  //             .transition().duration(750)
-  //             .attr('stroke', '#aaa')
-  //             .attr('fill', mapFill)
-
-  //         } else {
-  //           d3.select(`.f${fipsLookup[key]}`)
-  //             .classed('hidden', true)
-  //             .attr('stroke', 'none')
-  //             .attr('fill', 'none')
-  //         }
-  //       })
-  //     } else {
-  //       d3.selectAll('.stateShape').classed('hidden', true)
-  //       d3.select('.spikeLegend').classed('hidden', true)
-  //       d3.select('.colorLegend').classed('hidden', true)
-  //       d3.select('.tlBars').classed('hidden', true)
-  //       d3.select('.progress').classed('hidden', true)
-  //     }
-  //   }
-  // }
-
-  // const formatNumber = d3.format(",d")
-
-  // const bars = svg => {
-  //   let bar = svg
-  //     .append('g')
-  //     .attr('fill-opacity', 0.4)
-  //     .selectAll('rect');
-  
-  //   return (data, transition) => {
-  //     return (bar = bar
-  //       .data(data.statesRanked, d => d.state)
-  //       .join(
-  //         enter =>
-  //           enter
-  //             .append("rect")
-  //             // .attr("fill", color)
-  //             .attr("height", y.bandwidth())
-  //             .attr("x", x(0))
-  //             // .attr("y", d => y((prev.get(d) || d).rank))
-  //             .attr("y", d => y.range()[1])
-  //             .attr("width", d => x((prev.get(d) || d).value.smaRound) - x(0)),
-  //         update => update,
-  //         exit =>
-  //           exit
-  //             .transition(transition)
-  //             .remove()
-  //             // .attr("y", d => y((next.get(d) || d).rank))
-  //             .attr("y", d => y(d.rank))
-  //             // .attr("width", d => x((next.get(d) || d).value) - x(0))
-  //             .attr("width", d => x(d.value - x(0)))
-  //       )
-  //       .call(bar =>
-  //         bar
-  //           .transition(transition)
-  //           .attr("y", d => y(d.rank))
-  //           .attr("width", d => (d.value ? x(d.value.smaRound) - x(0) : 0))
-  //           .attr('fill', d => color(d.value.perHundThou))
-  //       ));
-  //   };
-  // }
-
-  // ------------------------------------------------------
-  // // BARS: DRAWING THINGS
-
-  // const updateBars = bars(chartSvg);
-  // const updateAxis = axis(chartSvg);
-  // const updateLabels = labels(chartSvg);
-  // const updateValues = values(chartSvg);
-
-  // ACTIVE ONES
-  // const updateTicker = ticker(mapSvg)
-  // const updateStateShapes = stateShapes(mapSvg)
-  // const updateProgress = progress(mapSvg);
-
   function scrub(keyframe) {
-    // const transition = chartSvg.transition()
-    //   // .duration(duration)
-    //   .duration((d, i) => {
-    //     console.log('d', d)
-    //     console.log('i', i)
-    //     return duration
-    //   })
-    //   .ease(d3.easeLinear)
-
-    // const largestBarVal = d3.max([keyframe.statesRanked[0].value.smaRound, 1]);
-    // x.domain([0, largestBarVal]);
-
-    // updateAxis(keyframe, transition, largestBarVal);
-    // updateBars(keyframe, transition);
-    // updateLabels(keyframe, transition);
-    // updateValues(keyframe, transition);
     updateTicker(keyframe);
     updateStateShapes(keyframe)
     updateProgress(keyframe)
-
-    // update(keyframe)
-    // updateSpikes(keyframe)
   }
-
-  enterView({
-    selector: '.step',
-    enter: function(el) {
-      // console.log(el)
-      el.classList.add('active-chapter');
-      const chapter = config.chapters.find(chap => chap.id == el.id);
-
-    },
-    progress: function(el, progress) {
-      // ...
-    },
-    exit: function(el) {
-      el.classList.remove('active-chapter');
-      const chapter = config.chapters.find(chap => chap.id === el.id);
-      const prevChapter = config.chapters.find(chap => chap.id === (Number(el.id) - 1).toString());
-      // map[prevChapter.mapAnimation || 'flyTo'](ua.device.type === "Mobile" ? prevChapter.mLocation : prevChapter.location);
-      
-      // if (prevChapter.onChapterEnter.length > 0) prevChapter.onChapterEnter.forEach(setLayerOpacity)
-
-    },
-    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-    offset: 0.4
-  });
-
-  enterView({
-    selector: '.introParas',
-    enter: function(el) {
-    },
-    progress: function(el, progress) {
-      if (!vizHidden) {
-        vizHidden = true
-        d3.selectAll('.stateShape').classed('hidden', true)
-        d3.select('.spikeLegend').classed('hidden', true)
-        d3.select('.colorLegend').classed('hidden', true)
-        d3.select('.tlBars').classed('hidden', true)
-        d3.select('.progress').classed('hidden', true)
-        d3.select('.tickerText').text('')
-      }
-    },
-    exit: function(el) {
-    },
-    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-    offset: 0.4
-  });
 }
 
 getData()
