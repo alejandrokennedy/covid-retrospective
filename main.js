@@ -251,11 +251,13 @@ function ramp(color, n = 256) {
 async function getData() {
 
   const getDataStart = performance.now()
+  console.log('beginning: ', getDataStart - start)
 
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
   // const storyData = await d3.json('./data/story.json')
 
   const storyFetchEnd = performance.now()
+  console.log('storyFetchEnd: ', storyFetchEnd - getDataStart)
   
   const chapters = storyData.map((d, i) => {
     return {
@@ -387,7 +389,36 @@ async function getData() {
 //---------------------------------------------------------
 // // GEO DATA
 
-  const us = await d3.json('./data/us.json')
+  // EXPERIMENTS vvv
+  const prePromiseAll = performance.now()
+  console.log('before fetches: ', prePromiseAll - storyFetchEnd)
+
+  const getCsv = (url) => d3.csv(url)
+  const getJson = (url) => d3.json(url)
+
+  const u = getJson('./data/us.json'),
+    mdcco = getJson('./data/maxDailyCasesCountiesObj.json'),
+    cpuf = getCsv('./data/countyPopUglyFips.csv'),
+    
+    ruc = getCsv('./data/us-cases.csv'),
+    rsuf = getCsv('./data/states-nyt-data.csv'),
+    rcuf = getCsv('./data/us-counties.csv')
+
+    // ruc = getIt('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
+    // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
+    // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+  
+  const [
+    us,
+    rawUsCases,
+    maxDailyCasesCountiesObj,
+    rawStatesUnfiltered,
+    rawCountiesUnfiltered,
+    countyPopUglyFips
+  ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
+
+  const postPromiseAll = performance.now()
+  console.log('after fetches: ', postPromiseAll - prePromiseAll)
 
   const usStates = topojson.feature(us, us.objects.states)
   const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
@@ -410,9 +441,6 @@ async function getData() {
   
 //---------------------------------------------------------
 // // US CASES DATA + DRAWING
-
-  // const rawUsCases = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv')
-  const rawUsCases = await d3.csv('./data/us-cases.csv')
 
   rawUsCases.forEach(d => {
     d.dateObj = parseDate(d.date),
@@ -497,7 +525,7 @@ async function getData() {
     .style('opacity', 5)
     .text(d => d.date)
 
-  const stepsSelection = await d3.selectAll('.step')
+  const stepsSelection = d3.selectAll('.step')
     .data(chapters)
     .call(div => {
       div.filter(d => d.id != 0 && d.id != 1)
@@ -519,7 +547,6 @@ async function getData() {
 // ------------------------------------------------------
 // // DRAWING: TIMELINE
 
-  const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
   const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
 
@@ -706,28 +733,6 @@ async function getData() {
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
   });
-
-//---------------------------------------------------------
-// // COVID DATA
-
-  console.log('just before fetches')
-
-  // TO GET NEW DATA: curl -LJO https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv
-  
-  const rawStatesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
-  // const rawStatesUnfiltered = await d3.csv('./data/states-nyt-data.csv')
-
-  // const rawCountiesUnfiltered = await d3.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-  const rawCountiesUnfiltered = await d3.csv('./data/us-counties.csv')
-
-  // statesPop.get(d.fips) / 100000;
-  // const perHundThou = smaRound / popPerHundThou;
-
-  // const statePop = await d3.csv('./data/statePop.csv')
-  const countyPopUglyFips = await d3.csv('./data/countyPopUglyFips.csv')
-
-  // ------------------------------------------------------
-  // // COVID DATA
 
   // // // COVID DATA FUNCTIONS & HELPER VARIABLES
 
@@ -1038,6 +1043,10 @@ async function getData() {
     updateStateShapes(keyframe)
     updateProgress(keyframe)
   }
+
+  const theEnd = performance.now()
+  console.log('rest: ', theEnd - postPromiseAll)
+
 }
 
 getData()
