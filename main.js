@@ -672,24 +672,32 @@ async function getData() {
       frame.counties.forEach(d => d.splice(3, 1, d[1]));
     }
   }
+  
+  let allowEnterExit = true
+  let allowProgress = true
 
-    
+  function handleScroll(el) {
+    if (allowEnterExit) {
+      // d3.select(el).style('opacity', 0.5)
+      allowEnterExit = false
+      allowProgress = true
+      scrub(keyFrames[Number(el.id)])
+      setTimeout(() => { allowEnterExit = true }, 2)
+    } else {
+      allowProgress = false
+    }
+  }
+
   enterView({
     selector: '.dateDiv',
     enter: function(el) {
-      console.log('entered!')
-      const frame = keyFrames[Number(el.id)]
-      // prevCounties = prevKF.get(frame.counties) || frame.counties
-      scrub(frame)
+      handleScroll(el)
     },
     progress: function(el, progress) {
-      updateSpikes(keyFrames[Number(el.id)], progress)
-      // console.log(progress)
+      if (allowProgress) updateSpikes(keyFrames[Number(el.id)], progress)
     },
     exit: function(el) {
-      const frame = keyFrames[Number(el.id)]
-      scrub(frame)
-      prevCounties = prevKF.get(frame.counties) || frame.counties
+      handleScroll(el)
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
@@ -1036,6 +1044,7 @@ async function getData() {
     .attr('dy', '1.1em')
     .attr('text-anchor', 'end')
     .attr("font-weight", "bold")
+    .attr("font-family", "helvetica")
     .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 13})`)
     .text('New Cases')
 
