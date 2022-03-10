@@ -675,29 +675,39 @@ async function getData() {
   
   let allowEnterExit = true
   let allowProgress = true
+  let terminalFrameId = null
 
-  function handleScroll(el) {
+  function handleScroll(elId) {
     if (allowEnterExit) {
       // d3.select(el).style('opacity', 0.5)
       allowEnterExit = false
       allowProgress = true
-      scrub(keyFrames[Number(el.id)])
-      setTimeout(() => { allowEnterExit = true }, 2)
+      const frame = keyFrames[Number(elId)]
+      scrub(frame)
+      setTimeout(() => {
+        allowEnterExit = true
+        if (terminalFrameId) {
+          scrub(keyFrames[Number(terminalFrameId)])
+          updateSpikes(frame, 0)
+        }
+        terminalFrameId = null
+      }, 2)
     } else {
       allowProgress = false
+      terminalFrameId = elId
     }
   }
 
   enterView({
     selector: '.dateDiv',
     enter: function(el) {
-      handleScroll(el)
+      handleScroll(el.id)
     },
     progress: function(el, progress) {
       if (allowProgress) updateSpikes(keyFrames[Number(el.id)], progress)
     },
     exit: function(el) {
-      handleScroll(el)
+      handleScroll(el.id - 1)
     },
     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
     offset: 0.4
