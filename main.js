@@ -10,7 +10,9 @@ const opacity = 0.7
 const avgNum = 14
 const duration = 225
 const excludedStates = ["66", "69", "72", "78"]
-const mapFill = '#f8f8f8'
+const mapFill = '#0d0d0d'
+const mapStroke = '#8d8d8d'
+const defaultTextColor = '#fafafa'
 
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
@@ -20,9 +22,10 @@ const parseDate = d3.timeParse("%Y-%m-%d")
 
 const body = d3.select('body')
   .style('margin', '0 auto')
-  // .style('font-family', 'helvetica')
   .style('font-size', '12px')
   .style('overflow', 'auto')
+  .style('background-color', '#171717')
+  .style('color', 'white')
 
 const container = d3.select('#container')
   .style('position', 'relative')
@@ -41,7 +44,8 @@ let mapHeight = macBounds.height
 const justMapHeight = mapWidth / 1.6
 const mapMarginTop = macBounds.height - 50 - justMapHeight
 const mapMargin = {top: mapMarginTop, right: 0, bottom: 0, left: 0}
-const spikeMax = macBounds.height
+// const spikeMax = macBounds.height
+const spikeMax = macBounds.height * 1.8
 const spikeWidth = mapWidth / 90
 
 
@@ -223,7 +227,7 @@ function legend({
     .call(g => g.append("text")
       .attr("x", marginLeft)
       .attr("y", marginTop + marginBottom - height - 6)
-      .attr("fill", "currentColor")
+      .attr("fill", defaultTextColor)
       .attr("text-anchor", "start")
       .attr("font-weight", "bold")
       .text(title));
@@ -322,12 +326,14 @@ async function getData() {
 
 				if (record.title) {
 					const title = document.createElement('h3');
+          title.classList.add(config.theme)
 					title.innerText = record.title;
 					chapter.appendChild(title);
 				}
 
 				if (record.headline) {
 					const headline = document.createElement('h4');
+          headline.classList.add(config.theme)
 					headline.innerText = record.headline;
 					chapter.appendChild(headline);
 				}
@@ -429,7 +435,7 @@ async function getData() {
     .selectAll('path')
    .data(usStates.features)
     .enter().append('path')
-    .attr('stroke', '#aaa')
+    .attr('stroke', mapStroke)
     .attr('fill', mapFill)
     .attr('class', d => `stateShape f${d.id} hidden`)
     .attr('d', path)
@@ -548,7 +554,10 @@ async function getData() {
   const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
 
-  const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#ffffff', '#fff940', '#ff8000', '#ff0022'])
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ffc800', '#ff4d00', '#ff47ea'])
+  const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ff0000', '#f200ff', '#476cff'])
   const color = d3.scaleSequential(interpolator)
     // .domain([0, 2366])
     .domain([0, maxPerHundThouCounties])
@@ -593,7 +602,7 @@ async function getData() {
       .style("font-family", `helvetica`)
       .style("font-weight", `100`)
       .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-      .style('stroke', '#555')
+      .style('fill', defaultTextColor)
       .text('');
 
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
@@ -607,6 +616,7 @@ async function getData() {
       .attr('y', 0)
       .attr('width', 1)
       .attr('height', tlHeight)
+      .style('fill', defaultTextColor)
     return keyframe => {
       if (keyframe !== undefined) {
         marker.attr('x', () => tlX(keyframe.date))
@@ -629,10 +639,10 @@ async function getData() {
             d3.select(`.f${fipsLookup[key]}.hidden`)
               .classed('hidden', false)
               .raise()
-              .attr('stroke', 'black')
-              .attr('fill', '#e8e8e8')
-              .transition().duration(750)
-              .attr('stroke', '#aaa')
+              .attr('stroke', 'white')
+              .attr('fill', '#d8d8d8')
+              .transition().duration(600)
+              .attr('stroke', mapStroke)
               .attr('fill', mapFill)
 
           } else {
@@ -1034,6 +1044,8 @@ async function getData() {
     .attr('class', 'spikeLegend hidden')
     .attr('text-anchor', 'middle')
     .attr('font-size', 8)
+    .attr('fill', defaultTextColor)
+    .attr("font-family", "helvetica")
 
   const spikeLegendGs = spikeLegend.selectAll('g')
     .data(length.ticks(4).slice(1).reverse())
@@ -1054,7 +1066,6 @@ async function getData() {
     .attr('dy', '1.1em')
     .attr('text-anchor', 'end')
     .attr("font-weight", "bold")
-    .attr("font-family", "helvetica")
     .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 13})`)
     .text('New Cases')
 
