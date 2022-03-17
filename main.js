@@ -551,18 +551,42 @@ async function getData() {
 // ------------------------------------------------------
 // // DRAWING: TIMELINE
 
-  const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-  const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+const colorCutoff = 350
 
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#ffffff', '#fff940', '#ff8000', '#ff0022'])
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ffc800', '#ff4d00', '#ff47ea'])
-  const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ff0000', '#f200ff', '#476cff'])
-  const color = d3.scaleSequential(interpolator)
-    // .domain([0, 2366])
-    .domain([0, maxPerHundThouCounties])
+// COLOR EXPERIMENTS
+  const interpolator1 = d3.piecewise(d3.interpolateHsl, ['#fffff2', '#ff8800', '#ff0022'])
+  // const interpolator1 = d3.piecewise(d3.interpolateHsl, ['white', 'yellow', '#ff8800', '#ff0022'])
+  const color1 = d3.scaleSequential(interpolator1)
+    .domain([0, colorCutoff])
+    // .domain([0, maxPerHundThouCounties])
     .clamp(true)
     .nice()
+  
+  const interpolator2 = d3.interpolate(color1.range()[1], "rgb(108,99,255)")
+  const color2 = d3.scaleSequential(interpolator2)
+    .domain([colorCutoff, maxPerHundThouCounties])
+    .clamp(true)
+    .nice()
+
+  // const color = (val) => val <= colorCutoff ? color1(val) : color2(val)
+  const color = (val) => {
+    // return val <= colorCutoff ? color1(val) : color2(val)
+    if (val <= colorCutoff) {
+      return color1(val)
+    } else {
+      // console.log('else')
+      return color2(val)
+    }
+  }
+  
+
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ff0000', '#f200ff', '#476cff'])
+  // const color = d3.scaleSequential(interpolator)
+  //   .domain([0, maxPerHundThouCounties])
+  //   .clamp(true)
+  //   .nice()
 
   const tlWidth = mapWidth - colorLegendWidth
   const tlHeight = 50
@@ -577,7 +601,7 @@ async function getData() {
     .range([tlHeight - tlMargin.bottom, tlMargin.top])
 
   mapSvg.append('g')
-    .attr('class', 'tlBars hidden')
+    .attr('class', 'tlBars hidden hideMe')
     .selectAll('rect')
   .data(usCasesSma)
     .join('rect')
@@ -586,6 +610,15 @@ async function getData() {
     .attr('width', tlX.bandwidth())
     .attr('height', d => tlY(0) - tlY(d[1].smaRound))
     .attr('fill', d => color(d[1].perCapita))
+
+  mapSvg.append('text')
+    .attr('x', tlX.range()[1] / 11)
+    .attr('y', tlY(0) + 18)
+    .attr('class', 'hidden hideMe')
+    .style('font-family', 'helvetica')
+    .style('font-size', 10)
+    .style('fill', defaultTextColor)
+    .text('Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people.')
 
 // ------------------------------------------------------
 // DRAW FUNCTIONS
@@ -630,7 +663,7 @@ async function getData() {
         vizHidden = false
         d3.select('.spikeLegend').classed('hidden', false)
         d3.select('.colorLegend').classed('hidden', false)
-        d3.select('.tlBars').classed('hidden', false)
+        d3.selectAll('.hideMe').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
         
         if (keyframe.statesCasesStarted)
@@ -656,7 +689,7 @@ async function getData() {
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
         d3.select('.colorLegend').classed('hidden', true)
-        d3.select('.tlBars').classed('hidden', true)
+        d3.selectAll('.hideMe').classed('hidden', true)
         d3.select('.progress').classed('hidden', true)
       }
     }
@@ -752,7 +785,7 @@ async function getData() {
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
         d3.select('.colorLegend').classed('hidden', true)
-        d3.select('.tlBars').classed('hidden', true)
+        d3.selectAll('.hideMe').classed('hidden', true)
         d3.select('.progress').classed('hidden', true)
         d3.select('.tickerText').text('')
       }
@@ -977,7 +1010,8 @@ async function getData() {
   // console.log(maxColor)
 
   const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
-  const legendColor = d3.scaleSequential(interpolator)
+  // const legendColor = d3.scaleSequential(interpolator)
+  const legendColor = d3.scaleSequential(interpolator1)
   // const legendColor = d3.scaleSequential(legendInterpolator)
     .domain([0, legendMax])
     .clamp(true)
@@ -985,7 +1019,8 @@ async function getData() {
 
   legend({
     // color: color,
-    color: legendColor,
+    // color: legendColor,
+    color: color1,
     title: "Cases / 100,000 People",
     // title: "New Cases Per 10,000 People",
     // width: mapWidth / 1.8,
@@ -1041,7 +1076,7 @@ async function getData() {
   const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
 
   const spikeLegend = mapSvg.append('g')
-    .attr('class', 'spikeLegend hidden')
+    .attr('class', 'spikeLegend hidden hideMe')
     .attr('text-anchor', 'middle')
     .attr('font-size', 8)
     .attr('fill', defaultTextColor)
