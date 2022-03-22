@@ -550,15 +550,12 @@ async function getData() {
   stepsSelection.selectAll('div')
     .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
-  console.log('stepsSelection', stepsSelection.selectAll('div').nodes())
-
   d3.select('#footer')
     .style('position', 'absolute')
     .style('top', d => {
       const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
       return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
     })
-
 
 // ------------------------------------------------------
 // // DRAWING: TIMELINE
@@ -659,13 +656,12 @@ const colorCutoff = 400
 
   const explanation = mapSvg.append('text')
     .attr('x', tlX.range()[1] / 12)
-    // .attr('y', ua.device.type === "Mobile" ? 100 + 15 : tlY(0) + 15)
     .attr('y', ua.device.type === "Mobile" ? headerOffset + 120 : headerOffset + tlY(0) + 20)
     .attr('class', 'hidden hideMe')
     .style('font-family', 'helvetica')
     .style('font-size', 10)
     .style('fill', defaultTextColor)
-    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average`)
+    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
 
   explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
     
@@ -674,35 +670,35 @@ const colorCutoff = 400
 
   let vizHidden = true
 
-  const ticker = svg => {
-    const now = svg.append('g').append("text")
-      .attr('class', 'tickerText')
-      .attr("transform", `translate(${(tlWidth / 2)},${headerOffset + 10})`)
-      .style("font", `bold ${10}px var(--sans-serif)`)
-      .style("font-variant-numeric", "tabular-nums")
-      .style("text-anchor", "middle")
-      .style("font-family", `helvetica`)
-      .style("font-weight", `100`)
-      // .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
-      .style("font-size", `${d3.min([mapWidth/27, 25])}px`)
-      .style('fill', defaultTextColor)
-      .text('');
+  const progBar = tlGroup.append('rect')
+    .attr('class', 'progress hidden')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', 1)
+    .attr('height', tlHeight)
+    .style('fill', defaultTextColor)
 
-    return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
+  const tickerText = mapSvg.append('g').append("text")
+    .attr('class', 'tickerText')
+    .attr("transform", ua.device.type === "Mobile" ? `translate(${(mapWidth / 2)},${headerOffset + 70})` : `translate(${(tlWidth / 2)},${headerOffset + 10})`)
+    .style("font", `bold ${10}px var(--sans-serif)`)
+    .style("font-variant-numeric", "tabular-nums")
+    .style("text-anchor", "middle")
+    .style("font-family", `helvetica`)
+    .style("font-weight", `100`)
+    .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
+    .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
+    .style('fill', defaultTextColor)
+    .text('');
+
+  const ticker = svg => {
+    return keyframe => keyframe !== undefined ? tickerText.text(formatDate(parseDate(keyframe.date))) : tickerText.text('')
   }
 
   const progress = svgEl => {
-    let marker = svgEl
-      .append('rect')
-      .attr('class', 'progress hidden')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', 1)
-      .attr('height', tlHeight)
-      .style('fill', defaultTextColor)
     return keyframe => {
       if (keyframe !== undefined) {
-        marker.attr('x', () => tlX(keyframe.date))
+        progBar.attr('x', () => tlX(keyframe.date))
       }
     }
   }
@@ -747,9 +743,9 @@ const colorCutoff = 400
 
 // ------------------------------------------------------
 // // UPDATE FUNCTIONS
-  const updateTicker = ticker(mapSvg)
-  const updateStateShapes = stateShapes(mapSvg)
-  const updateProgress = progress(tlGroup)
+const updateStateShapes = stateShapes(mapSvg)
+const updateProgress = progress(tlGroup)
+const updateTicker = ticker(mapSvg)
 
   // let prevCounties
   const updateSpikes = (frame, t) => {
@@ -1145,9 +1141,10 @@ const colorCutoff = 400
     .attr("font-family", "helvetica")
 
   const spikeLegendGs = spikeLegend.selectAll('g')
-    .data(length.ticks(4).slice(1).reverse())
+    // .data(length.ticks(4).slice(1).reverse())
+    .data([20000, 10000, 5000])
    .join('g')
-    .attr('transform', (d, i) => `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 13})`)
+    .attr('transform', (d, i) => `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`)
 
   spikeLegendGs.append('path')
     .style('opacity', opacity)
@@ -1163,7 +1160,7 @@ const colorCutoff = 400
     .attr('dy', '1.1em')
     .attr('text-anchor', 'end')
     .attr("font-weight", "bold")
-    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 13})`)
+    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 45})`)
     .text('New Cases')
 
   function scrub(keyframe) {
