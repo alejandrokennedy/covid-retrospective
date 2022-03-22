@@ -14,7 +14,8 @@
 
 #mapAndControls {
   /* border: 3px solid orangered; */
-  height: 100vh;
+  height: calc(100vh - 52px);
+  /* height: 100vh; */
   width: 600px;
   /* width: 60vw; */
   flex-grow: 2;

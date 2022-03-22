@@ -16,6 +16,9 @@ const defaultTextColor = '#fafafa'
 
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
+const ua = detect.parse(navigator.userAgent)
+const headerOffset = 80
+const marginOffset = 30
 
 // ------------------------------------------------------
 // // PAGE SETUP
@@ -100,7 +103,7 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
 // // COLOR LEGEND SETUP
 
 const colorLegendWidth = d3.min([mapWidth / 4, 320])
-const colorLegendOffset = mapWidth - colorLegendWidth
+const colorLegendOffset = mapWidth - marginOffset - colorLegendWidth
 
 function legend({
   color,
@@ -114,12 +117,14 @@ function legend({
   marginLeft = 0,
   ticks = width / 64,
   tickFormat,
-  tickValues
+  tickValues,
+  xVal,
+  yVal
 } = {}) {
 
   const colorLegendG = mapSvg.append('g')
-    .attr('transform', `translate(${colorLegendOffset}, 0)`)
-    .attr('class', 'colorLegend hidden')
+    .attr('transform', `translate(${xVal}, ${yVal})`)
+    .attr('class', 'colorLegend hidden hideMe')
 
   let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
   let x;
@@ -335,7 +340,7 @@ async function getData() {
 					const headline = document.createElement('h4');
           headline.classList.add(config.theme)
 					headline.innerText = record.headline;
-					chapter.appendChild(headline);
+					chapter.appendChild(headline)
 				}
 
 				if (record.image) {
@@ -553,42 +558,28 @@ async function getData() {
 
 const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
 const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
-const colorCutoff = 350
+const colorCutoff = 400
 
-// COLOR EXPERIMENTS
   const interpolator1 = d3.piecewise(d3.interpolateHsl, ['#fffff2', '#ff8800', '#ff0022'])
-  // const interpolator1 = d3.piecewise(d3.interpolateHsl, ['white', 'yellow', '#ff8800', '#ff0022'])
   const color1 = d3.scaleSequential(interpolator1)
     .domain([0, colorCutoff])
     // .domain([0, maxPerHundThouCounties])
     .clamp(true)
-    .nice()
   
   const interpolator2 = d3.interpolate(color1.range()[1], "rgb(108,99,255)")
   const color2 = d3.scaleSequential(interpolator2)
     .domain([colorCutoff, maxPerHundThouCounties])
     .clamp(true)
-    .nice()
 
-  // const color = (val) => val <= colorCutoff ? color1(val) : color2(val)
   const color = (val) => {
-    // return val <= colorCutoff ? color1(val) : color2(val)
     if (val <= colorCutoff) {
       return color1(val)
     } else {
-      // console.log('else')
       return color2(val)
     }
   }
-  
 
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#feffcc', '#ff0000', '#f200ff', '#476cff'])
-  // const color = d3.scaleSequential(interpolator)
-  //   .domain([0, maxPerHundThouCounties])
-  //   .clamp(true)
-  //   .nice()
-
-  const tlWidth = mapWidth - colorLegendWidth
+  const tlWidth = ua.device.type === "Mobile" ? mapWidth - marginOffset : mapWidth - colorLegendWidth - marginOffset
   const tlHeight = 50
   const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
 
@@ -600,8 +591,12 @@ const colorCutoff = 350
     .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
     .range([tlHeight - tlMargin.bottom, tlMargin.top])
 
-  mapSvg.append('g')
+  const tlGroup = mapSvg.append('g')
     .attr('class', 'tlBars hidden hideMe')
+    .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 + headerOffset : headerOffset})`)
+    // .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 : 0})`)
+
+  tlGroup
     .selectAll('rect')
   .data(usCasesSma)
     .join('rect')
@@ -611,15 +606,62 @@ const colorCutoff = 350
     .attr('height', d => tlY(0) - tlY(d[1].smaRound))
     .attr('fill', d => color(d[1].perCapita))
 
-  mapSvg.append('text')
-    .attr('x', tlX.range()[1] / 11)
-    .attr('y', tlY(0) + 18)
+  // EXPLANATION...
+  const wrap_text_array = (text, max_width) => {
+    // split the text around spaces (to get individual words)
+    const words = text.split(/\s+/).reverse();
+    
+    // define vars to hold individual words, lines, and all lines
+    let word,
+        lines = [ ],
+        line = [ ];
+    
+    // add words to a line until we exceed the max_width (in characters)
+    // when we reach width, add the line to lines and start a new line
+    while (word = words.pop()) {
+      line.push(word);
+      if (line.join(" ").length > max_width) {
+        line.pop()
+        lines.push(line.join(" "));
+        line = [word];
+      }
+    }
+    lines.push(line.join(" "));
+    
+    return lines;
+  }
+
+  const wrap_text_nchar = (text_element, max_width, line_height, unit = "em") => {
+  
+    // use a default line_height if not provided
+    if (!line_height) line_height = 1.1;
+    
+    // wrap the text based on how many characters per line
+    const text_array = wrap_text_array(text_element.text(), max_width);
+    
+    // append a tspan element for each line of text_array
+    text_element.text(null)
+      .selectAll("tspan")
+      .data(text_array).enter()
+      .append("tspan")
+      .attr("x", text_element.attr("x"))
+      .attr("y", text_element.attr("y"))
+      .attr("dy", (d, i) => `${i * line_height}${unit}`)
+      .text(d => d);
+  }
+
+  const explanation = mapSvg.append('text')
+    .attr('x', tlX.range()[1] / 12)
+    // .attr('y', ua.device.type === "Mobile" ? 100 + 15 : tlY(0) + 15)
+    .attr('y', ua.device.type === "Mobile" ? headerOffset + 115 : headerOffset + tlY(0) + 15)
     .attr('class', 'hidden hideMe')
     .style('font-family', 'helvetica')
     .style('font-size', 10)
     .style('fill', defaultTextColor)
-    .text('Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people.')
+    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average`)
 
+  explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
+    
 // ------------------------------------------------------
 // DRAW FUNCTIONS
 
@@ -628,21 +670,22 @@ const colorCutoff = 350
   const ticker = svg => {
     const now = svg.append('g').append("text")
       .attr('class', 'tickerText')
-      .attr("transform", `translate(${mapWidth / 2},${mapMargin.top * 0.7})`)
+      .attr("transform", `translate(${(tlWidth / 2)},${headerOffset + 8})`)
       .style("font", `bold ${10}px var(--sans-serif)`)
       .style("font-variant-numeric", "tabular-nums")
       .style("text-anchor", "middle")
       .style("font-family", `helvetica`)
       .style("font-weight", `100`)
-      .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+      // .style("font-size", `${d3.min([mapWidth/22, 30])}px`)
+      .style("font-size", `${d3.min([mapWidth/27, 25])}px`)
       .style('fill', defaultTextColor)
       .text('');
 
     return keyframe => keyframe !== undefined ? now.text(formatDate(parseDate(keyframe.date))) : now.text('')
   }
 
-  const progress = svg => {
-    let marker = svg
+  const progress = svgEl => {
+    let marker = svgEl
       .append('rect')
       .attr('class', 'progress hidden')
       .attr('x', 0)
@@ -661,7 +704,7 @@ const colorCutoff = 350
     return keyframe => {
       if (keyframe !== undefined) {
         vizHidden = false
-        d3.select('.spikeLegend').classed('hidden', false)
+        d3.selectAll('.spikeLegend').classed('hidden', false)
         d3.select('.colorLegend').classed('hidden', false)
         d3.selectAll('.hideMe').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
@@ -688,7 +731,7 @@ const colorCutoff = 350
       } else {
         d3.selectAll('.stateShape').classed('hidden', true)
         d3.select('.spikeLegend').classed('hidden', true)
-        d3.select('.colorLegend').classed('hidden', true)
+        d3.selectAll('.colorLegend').classed('hidden', true)
         d3.selectAll('.hideMe').classed('hidden', true)
         d3.select('.progress').classed('hidden', true)
       }
@@ -699,7 +742,7 @@ const colorCutoff = 350
 // // UPDATE FUNCTIONS
   const updateTicker = ticker(mapSvg)
   const updateStateShapes = stateShapes(mapSvg)
-  const updateProgress = progress(mapSvg)
+  const updateProgress = progress(tlGroup)
 
   // let prevCounties
   const updateSpikes = (frame, t) => {
@@ -1018,15 +1061,27 @@ const colorCutoff = 350
     .nice()
 
   legend({
-    // color: color,
-    // color: legendColor,
     color: color1,
     title: "Cases / 100,000 People",
-    // title: "New Cases Per 10,000 People",
-    // width: mapWidth / 1.8,
-    width: colorLegendWidth,
+    // width: colorLegendWidth * 2 / 3,
+    width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
     marginLeft: 15,
-    marginRight: 15
+    marginRight: 12,
+    // xVal: colorLegendOffset,
+    xVal: ua.device.type === "Mobile" ? 0 : colorLegendOffset,
+    yVal: headerOffset,
+    tickValues: [0, 100, 200, 300, colorCutoff]
+  })
+
+  legend({
+    color: color2,
+    // width: colorLegendWidth * 1 / 3,
+    width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
+    marginLeft: 12,
+    marginRight: 15,
+    xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
+    yVal: headerOffset,
+    tickValues: [colorCutoff, 2000]
   })
 
   // ------------------------------------------------------
