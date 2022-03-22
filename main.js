@@ -44,9 +44,10 @@ const macBounds = d3.select('#mapAndControls').node().getBoundingClientRect()
 let mapWidth = macBounds.width
 let mapHeight = macBounds.height
 
-const justMapHeight = mapWidth / 1.6
+// const justMapHeight = mapWidth / 1.6
+const justMapHeight = mapWidth / 1.9
 const mapMarginTop = macBounds.height - 50 - justMapHeight
-const mapMargin = {top: mapMarginTop, right: 0, bottom: 0, left: 0}
+const mapMargin = {top: mapMarginTop, right: 40, bottom: 0, left: 0}
 // const spikeMax = macBounds.height
 const spikeMax = macBounds.height * 1.8
 const spikeWidth = mapWidth / 90
@@ -432,7 +433,8 @@ async function getData() {
   console.log('after fetches: ', postPromiseAll - prePromiseAll)
 
   const usStates = topojson.feature(us, us.objects.states)
-  const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
+  const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
+  // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
   const path = d3.geoPath().projection(projection)
 
   mapSvg.append('g')
@@ -545,6 +547,11 @@ async function getData() {
         })
     })
 
+  stepsSelection.selectAll('div')
+    .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
+
+  console.log('stepsSelection', stepsSelection.selectAll('div').nodes())
+
   d3.select('#footer')
     .style('position', 'absolute')
     .style('top', d => {
@@ -653,7 +660,7 @@ const colorCutoff = 400
   const explanation = mapSvg.append('text')
     .attr('x', tlX.range()[1] / 12)
     // .attr('y', ua.device.type === "Mobile" ? 100 + 15 : tlY(0) + 15)
-    .attr('y', ua.device.type === "Mobile" ? headerOffset + 115 : headerOffset + tlY(0) + 15)
+    .attr('y', ua.device.type === "Mobile" ? headerOffset + 120 : headerOffset + tlY(0) + 20)
     .attr('class', 'hidden hideMe')
     .style('font-family', 'helvetica')
     .style('font-size', 10)
@@ -670,7 +677,7 @@ const colorCutoff = 400
   const ticker = svg => {
     const now = svg.append('g').append("text")
       .attr('class', 'tickerText')
-      .attr("transform", `translate(${(tlWidth / 2)},${headerOffset + 8})`)
+      .attr("transform", `translate(${(tlWidth / 2)},${headerOffset + 10})`)
       .style("font", `bold ${10}px var(--sans-serif)`)
       .style("font-variant-numeric", "tabular-nums")
       .style("text-anchor", "middle")
