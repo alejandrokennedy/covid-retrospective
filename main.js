@@ -44,10 +44,10 @@ const macBounds = d3.select('#mapAndControls').node().getBoundingClientRect()
 let mapWidth = macBounds.width
 let mapHeight = macBounds.height
 
-// const justMapHeight = mapWidth / 1.6
-const justMapHeight = mapWidth / 1.9
+const justMapHeight = mapWidth / 1.7
+// const justMapHeight = mapWidth / 1.9
 const mapMarginTop = macBounds.height - 50 - justMapHeight
-const mapMargin = {top: mapMarginTop, right: 40, bottom: 0, left: 0}
+const mapMargin = {top: mapMarginTop, right: 45, bottom: 0, left: 0}
 // const spikeMax = macBounds.height
 const spikeMax = macBounds.height * 1.8
 const spikeWidth = mapWidth / 90
