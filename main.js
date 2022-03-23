@@ -17,7 +17,7 @@ const defaultTextColor = '#fafafa'
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
 const ua = detect.parse(navigator.userAgent)
-const headerOffset = 80
+const headerOffset = ua.device.type === "Mobile" ? 0 : 80
 const marginOffset = 30
 
 // ------------------------------------------------------
@@ -30,9 +30,13 @@ const body = d3.select('body')
   .style('background-color', '#171717')
   .style('color', 'white')
 
+// console.log('width', d3.select('#viz-container').node().getBoundingClientRect().width)
+
 const container = d3.select('#container')
   .style('position', 'relative')
   .style('margin', '0 auto')
+
+console.log('container width:', container.node().getBoundingClientRect().width)
 
 // ------------------------------------------------------
 // // MAP SETUP
@@ -412,11 +416,11 @@ async function getData() {
     mdcco = getJson('./data/maxDailyCasesCountiesObj.json'),
     cpuf = getCsv('./data/countyPopUglyFips.csv'),
     
-    ruc = getCsv('./data/us-cases.csv'),
-    rsuf = getCsv('./data/states-nyt-data.csv'),
+    ruc = getCsv('./data/us.csv'),
+    rsuf = getCsv('./data/us-states.csv'),
     rcuf = getCsv('./data/us-counties.csv')
 
-    // ruc = getIt('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
+    // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
@@ -428,6 +432,10 @@ async function getData() {
     rawCountiesUnfiltered,
     countyPopUglyFips
   ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
+
+  // console.log('rawUsCases', rawUsCases)
+  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
+  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
 
   const postPromiseAll = performance.now()
   console.log('after fetches: ', postPromiseAll - prePromiseAll)
@@ -1144,7 +1152,11 @@ const updateTicker = ticker(mapSvg)
     // .data(length.ticks(4).slice(1).reverse())
     .data([20000, 10000, 5000])
    .join('g')
-    .attr('transform', (d, i) => `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`)
+    // .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
+    .attr('transform', (d, i) => ua.device.type === 'Mobile'
+      ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
+      : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
+    // .attr('transform', (d, i) => `translate(${mapWidth - 20},${mapHeight - 45})`)
 
   spikeLegendGs.append('path')
     .style('opacity', opacity)
@@ -1160,7 +1172,7 @@ const updateTicker = ticker(mapSvg)
     .attr('dy', '1.1em')
     .attr('text-anchor', 'end')
     .attr("font-weight", "bold")
-    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 5},${mapHeight - 45})`)
+    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 45})`)
     .text('New Cases')
 
   function scrub(keyframe) {

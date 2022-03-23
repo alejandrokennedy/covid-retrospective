@@ -1,8 +1,12 @@
 #container {
-  /* border: 3px solid green; */
+  border: 3px solid green;
   display: flex;
   flex-wrap: wrap;
-  width: calc(100vw - 15px);
+  width: min(1500px, 100vw - 15px);
+}
+
+#story-container {
+  width: min(1500px, 100vw - 15px);
 }
 
 #desktop-spacer {
@@ -13,10 +17,208 @@
 }
 
 #mapAndControls {
-  /* border: 3px solid orangered; */
+  border: 3px solid orangered;
   height: calc(100vh - 52px);
   /* height: 100vh; */
   width: 600px;
+  /* max-width: 600px; */
   /* width: 60vw; */
   flex-grow: 2;
+}
+
+/* from template */
+
+@font-face {
+  font-family: 'Palatino';
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; /* Read next point */
+  src: local('Palatino'),
+    url('./Palatino.woff') format('woff');
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Palatino', 'Georgia', 'serif';
+  /* font-family: 'Raleway', sans-serif; */
+}
+
+a,
+a:hover,
+a:visited {
+  color: #0071bc;
+}
+
+#map {
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+}
+
+#satellite {
+  top: 0;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+}
+
+#header {
+  margin: auto;
+  width: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+#header h1,
+#header h2,
+#header p {
+  margin: 0;
+  padding: 2vh 2vw;
+  text-align: center;
+}
+
+/* MODIFIED */
+h3 {
+  opacity: 1;
+  color: #0a0a0a;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: normal;
+  text-align: center;
+  margin-bottom: 25px
+}
+
+h4 {
+  opacity: 1;
+  color: #0a0a0a;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: normal;
+  text-align: center;
+  margin-bottom: 25px
+}
+
+#footer {
+  width: 100%;
+  min-height: 5vh;
+  padding-top: 2vh;
+  padding-bottom: 2vh;
+  text-align: left;
+  line-height: 25px;
+  font-size: 16px;
+  /* font-size: 1.125rem; */
+  position: relative;
+  z-index: 5;
+}
+
+#features {
+  padding-top: 10vh;
+  padding-bottom: 10vh;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.centered {
+  width: 75vw;
+  margin: 0 auto;
+  /* opacity: 0.99; */
+}
+
+.lefty {
+  width: 33vw;
+  /* margin-left: 5vw; */
+  margin-left: 3vw;
+}
+
+.righty {
+  width: 33vw;
+  margin-left: 62vw;
+}
+
+.fully {
+  width: 100%;
+  margin: auto;
+}
+
+.light {
+  color: #0a0a0a;
+  background-color: #fafafa;
+}
+
+.dark {
+  color: #fafafa;
+  /* background-color: #444; */
+  background-color: 'none';
+}
+
+.step {
+  padding-bottom: 30vh;
+  opacity: 0.25;
+}
+
+.step.active-chapter {
+  opacity: 0.99;
+}
+
+.step div {
+  padding: 25px 35px;
+  /* padding: 25px 35px 25px 0px; */
+  line-height: 25px;
+  font-size: 18px;
+  line-height: 1.6;
+  /* text-shadow: #0a0a0a 1px 0 10px; */
+  text-shadow: 0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717;
+}
+
+.opening-title div {
+  padding: 25px 0px;
+}
+
+.step img {
+  width: 100%;
+}
+
+@media (max-width: 750px) {
+
+  .centered,
+  .lefty,
+  .righty,
+  .fully {
+    width: 90vw;
+    margin: 0 auto;
+  }
+}
+
+/* Fix issue on mobile browser where scroll breaks  */
+.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan,
+.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan .mapboxgl-canvas {
+  touch-action: unset;
+}
+
+.map-color-key {
+  width: 15px;
+  height: 15px;
+  padding: 0px !important;
+  display: inline-block;
+  border-radius: 1.5px;
+}
+
+.photo-caption {
+  font-style: italic;
+  font-family: 'Palatino', 'Georgia', 'serif';
+  font-size: 14px;
+}
+
+.firstcharacter {
+  float: left;
+  font-family: 'Raleway', sans-serif;
+  font-size: 75px;
+  line-height: 60px;
+  padding-top: 4px;
+  padding-right: 8px;
+  padding-left: 3px;
 }
