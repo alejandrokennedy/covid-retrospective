@@ -1,3 +1,7 @@
+#viz-container {
+  border: 1px solid fuchsia;
+}
+
 #container {
   border: 1px solid green;
   display: flex;

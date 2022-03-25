@@ -1,9 +1,14 @@
 //---------------------------------------------------------
 // SETUP
 
-const mainContainer = d3.select('#main-container')
-  .attr('height', window.innerHeight)
-  .attr('width', window.innerWidth)
+const vizContainer = d3.select('#viz-container')
+  .style('height', `${window.innerHeight - 2}px`)
+//   .style('width', window.innerWidth - 2)
+
+console.log(vizContainer.node())
+
+console.log(window.innerHeight - 2)
+
 
 // ------------------------------------------------------
 // // MISCELLANEOUS VARIABLES SETUP
