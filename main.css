@@ -3,12 +3,12 @@
   display: flex;
   flex-wrap: wrap;
   width: min(1500px, 100vw - 15px);
-  text-align: center;
+  /* text-align: center; */
 }
 
 #story-container {
   width: min(1500px, 100vw - 15px);
-  text-align: center;
+  /* text-align: center; */
 }
 
 #desktop-spacer {

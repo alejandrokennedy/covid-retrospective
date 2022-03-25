@@ -50,7 +50,8 @@ let mapHeight = macBounds.height
 
 const justMapHeight = mapWidth / 1.7
 // const justMapHeight = mapWidth / 1.9
-const mapMarginTop = macBounds.height - 50 - justMapHeight
+// const mapMarginTop = macBounds.height - 50 - justMapHeight
+const mapMarginTop = ua.device.type === "Mobile" ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
 const mapMargin = {top: mapMarginTop, right: 45, bottom: 0, left: 0}
 // const spikeMax = macBounds.height
 const spikeMax = macBounds.height * 1.8
