@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>covid-animation</title>
-  <link rel="stylesheet" href="./main.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>covid-animation</title>
+	<link rel="stylesheet" href="./main.css">
 
 	<!-- FONTS -->
 	<link rel="preload" as="font" href="./Palatino.woff" type="font/woff2" crossorigin="anonymous">
@@ -18,29 +19,31 @@
 	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
 	<script src="https://unpkg.com/enter-view"></script>
-	
+
 	<!-- OFFLINE LIBS -->
 	<!-- <script src='./libs/topojson.js'></script>
 	<script src="./libs/d3.js"></script>
 	<script src="./libs/detect.js"></script>
 	<script src="./libs/enter-view.js"></script> -->
-	
-	</head>
-	
-	<body>
-	<div id="viz-container" style="position: fixed; top: 0;">
-		<div id="container">
-			<div id="desktop-spacer"></div>
-			<div id="mapAndControls" style="display: sticky; top: 0px">
-				<div id="map-container"></div>
+
+</head>
+
+<body>
+	<div id="main-container">
+		<div id="viz-container" style="position: fixed; top: 0;">
+			<div id="container">
+				<div id="desktop-spacer"></div>
+				<div id="mapAndControls" style="display: sticky; top: 0px">
+					<div id="map-container"></div>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div id="story-container">
-		<div id="story"></div>
+		<div id="story-container">
+			<div id="story"></div>
+		</div>
 	</div>
 	<script src="config.js"></script>
 	<script src='main.js'></script>
-	</body>
-	
-	</html>
+</body>
+
+</html>

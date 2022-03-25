@@ -1,6 +1,10 @@
 //---------------------------------------------------------
 // SETUP
 
+const mainContainer = d3.select('#main-container')
+  .attr('height', window.innerHeight)
+  .attr('width', window.innerWidth)
+
 // ------------------------------------------------------
 // // MISCELLANEOUS VARIABLES SETUP
 
