@@ -2,7 +2,7 @@
 // SETUP
 
 console.log('diff:', window.outerHeight - window.innerHeight)
-
+const ua = detect.parse(navigator.userAgent)
 // const properHeight = window.innerHeight - 2 - 52
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 110 : window.innerHeight - 2
 
@@ -27,7 +27,6 @@ const defaultTextColor = '#fafafa'
 
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
-const ua = detect.parse(navigator.userAgent)
 const headerOffset = ua.device.type === "Mobile" ? 8 : 80
 const marginOffset = 30
 
