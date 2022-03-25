@@ -1,12 +1,14 @@
 #container {
-  border: 3px solid green;
+  border: 1px solid green;
   display: flex;
   flex-wrap: wrap;
   width: min(1500px, 100vw - 15px);
+  text-align: center;
 }
 
 #story-container {
   width: min(1500px, 100vw - 15px);
+  text-align: center;
 }
 
 #desktop-spacer {
@@ -17,8 +19,9 @@
 }
 
 #mapAndControls {
-  border: 3px solid orangered;
-  height: calc(100vh - 52px);
+  border: 1px solid orangered;
+  /* height: calc(100vh - 52px); */
+  height: calc(100vh - 4px);
   /* height: 100vh; */
   width: 600px;
   /* max-width: 600px; */

@@ -17,7 +17,7 @@ const defaultTextColor = '#fafafa'
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
 const ua = detect.parse(navigator.userAgent)
-const headerOffset = ua.device.type === "Mobile" ? 0 : 80
+const headerOffset = ua.device.type === "Mobile" ? 8 : 80
 const marginOffset = 30
 
 // ------------------------------------------------------
@@ -267,8 +267,10 @@ async function getData() {
   const getDataStart = performance.now()
   console.log('beginning: ', getDataStart - start)
 
-  const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  // const storyData = await d3.json('./data/story.json')
+  // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  const storyData = await d3.json('./data/story.json')
+
+  // console.log(storyData)
 
   const storyFetchEnd = performance.now()
   console.log('storyFetchEnd: ', storyFetchEnd - getDataStart)
