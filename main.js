@@ -1,11 +1,12 @@
 //---------------------------------------------------------
 // SETUP
 
-const properHeight = window.innerHeight - 2 - 52
+// const properHeight = window.innerHeight - 2 - 52
+const properHeight = window.innerHeight - 2 - 100
 
 const vizContainer = d3.select('#viz-container')
   .style('height', `${properHeight}px`)
-//   .style('width', window.innerWidth - 2)
+  .style('width', window.innerWidth - 2)
 
 console.log('properHeight', properHeight)
 
