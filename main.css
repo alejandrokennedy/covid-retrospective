@@ -3,7 +3,7 @@
 }
 
 #container {
-  border: 1px solid green;
+  /* border: 1px solid green; */
   display: flex;
   flex-wrap: wrap;
   width: min(1500px, 100vw - 15px);
@@ -23,7 +23,7 @@
 }
 
 #mapAndControls {
-  border: 1px solid orangered;
+  /* border: 1px solid orangered; */
   /* height: calc(100vh - 52px); */
   height: calc(100vh - 4px);
   /* height: 100vh; */
