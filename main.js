@@ -4,7 +4,7 @@
 console.log('diff:', window.outerHeight - window.innerHeight)
 
 // const properHeight = window.innerHeight - 2 - 52
-const properHeight = window.innerHeight - 2 - 112
+const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 110 : window.innerHeight - 2
 
 const vizContainer = d3.select('#viz-container')
   .style('height', `${properHeight}px`)
