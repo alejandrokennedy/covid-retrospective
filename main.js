@@ -61,7 +61,8 @@ let mapHeight = macBounds.height
 const justMapHeight = mapWidth / 1.7
 // const justMapHeight = mapWidth / 1.9
 // const mapMarginTop = macBounds.height - 50 - justMapHeight
-const mapMarginTop = ua.device.type === "Mobile" ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
+// const mapMarginTop = ua.device.type === "Mobile" ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
+const mapMarginTop = macBounds.height - justMapHeight - 5
 const mapMargin = {top: mapMarginTop, right: 45, bottom: 0, left: 0}
 // const spikeMax = macBounds.height
 const spikeMax = macBounds.height * 1.8
@@ -279,6 +280,7 @@ async function getData() {
   console.log('beginning: ', getDataStart - start)
 
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  // const storyData = await d3.csv('./data/chapters-Sheet1.csv')
   // const storyData = await d3.json('./data/story.json')
 
   // console.log(storyData)
@@ -389,6 +391,9 @@ async function getData() {
             .style('padding-bottom', `${mapHeight * 0.6}px`)
             .style('opacity', 0.99)
 				}
+
+        d3.selectAll('.step').selectAll('div')
+        .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
 				chapter.classList.add(config.theme);
 				container.appendChild(chapter);
@@ -557,7 +562,9 @@ async function getData() {
     .style('opacity', 0.0)
     .text(d => d.date)
 
-  const stepsSelection = d3.selectAll('.step')
+  const stepSelection = d3.selectAll('.step')
+
+  stepSelection
     .data(chapters)
     .call(div => {
       div.filter(d => d.id != 0 && d.id != 1)
@@ -567,9 +574,6 @@ async function getData() {
           if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
         })
     })
-
-  stepsSelection.selectAll('div')
-    .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
   d3.select('#footer')
     .style('position', 'absolute')
@@ -1165,11 +1169,10 @@ const updateTicker = ticker(mapSvg)
     // .data(length.ticks(4).slice(1).reverse())
     .data([20000, 10000, 5000])
    .join('g')
-    // .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
-    .attr('transform', (d, i) => ua.device.type === 'Mobile'
-      ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
-      : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
-    // .attr('transform', (d, i) => `translate(${mapWidth - 20},${mapHeight - 45})`)
+    .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 20})`)
+    // .attr('transform', (d, i) => ua.device.type === 'Mobile'
+    //   ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
+    //   : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
 
   spikeLegendGs.append('path')
     .style('opacity', opacity)
@@ -1185,7 +1188,11 @@ const updateTicker = ticker(mapSvg)
     .attr('dy', '1.1em')
     .attr('text-anchor', 'end')
     .attr("font-weight", "bold")
-    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 45})`)
+    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 20})`)
+    // ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
+    // .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${ua.device.type === "Mobile"
+    //   ? properHeight - 10
+    //   : properHeight - 10})`)
     .text('New Cases')
 
   function scrub(keyframe) {

@@ -7,6 +7,7 @@
   display: flex;
   flex-wrap: wrap;
   width: min(1500px, 100vw - 15px);
+  height: 100%;
   /* text-align: center; */
 }
 
@@ -23,10 +24,11 @@
 }
 
 #mapAndControls {
-  /* border: 1px solid orangered; */
+  border: 2px solid orangered;
   /* height: calc(100vh - 52px); */
-  height: calc(100vh - 4px);
+  /* height: calc(100vh - 4px); */
   /* height: 100vh; */
+  height: 100%;
   width: 600px;
   /* max-width: 600px; */
   /* width: 60vw; */
