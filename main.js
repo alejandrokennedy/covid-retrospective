@@ -458,6 +458,8 @@ async function getData() {
 
   console.log(jhuRaw)
 
+  d3.selectAll('.step').text('data loaded')
+
   // console.log('rawUsCases', rawUsCases)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
