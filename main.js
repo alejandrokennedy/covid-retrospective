@@ -279,9 +279,8 @@ async function getData() {
   const getDataStart = performance.now()
   console.log('beginning: ', getDataStart - start)
 
-  const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  // const storyData = await d3.csv('./data/chapters-Sheet1.csv')
-  // const storyData = await d3.json('./data/story.json')
+  // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  const storyData = await d3.csv('./data/chapters-Sheet1.csv')
 
   // console.log(storyData)
 
@@ -393,6 +392,7 @@ async function getData() {
 				}
 
         d3.selectAll('.step').selectAll('div')
+        .attr('class', 'storyDiv')
         .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
 				chapter.classList.add(config.theme);
@@ -436,7 +436,8 @@ async function getData() {
     
     ruc = getCsv('./data/us.csv'),
     rsuf = getCsv('./data/us-states.csv'),
-    rcuf = getCsv('./data/us-counties.csv')
+    // rcuf = getCsv('./data/us-counties.csv')
+    rcuf = getCsv('./data/jhuFlat.csv')
 
     // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
@@ -557,8 +558,9 @@ async function getData() {
     .attr('id', (d, i) => i)
     .attr('height', 10)
     .attr('width', 20)
-    .style('padding', '50px')
+    .style('padding', '70px')
     // .style('border', '1px solid pink')
+    // .style('opacity', 0.5)
     .style('opacity', 0.0)
     .text(d => d.date)
 
@@ -604,6 +606,7 @@ const colorCutoff = 400
     if (val <= colorCutoff) {
       return color1(val)
     } else {
+      console.log('color2')
       return color2(val)
     }
   }
@@ -1121,16 +1124,32 @@ const updateTicker = ticker(mapSvg)
   // // DRAWING: SPIKES
 
   const draw = frame => {
+    // frame.counties.forEach(d => {
+    //   if (d[0] === "48113") {
+    //     console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
+    //   }
+    // })
+
     ctx.clearRect(0, 0, mapWidth, mapHeight);
-    frame.counties.forEach((d, i) => {
+    frame.counties.forEach(d => {
       const xPos = countyPositions.get(d[0])[0];
       const yPos = countyPositions.get(d[0])[1];
+      // if (d[0] === "48113") {
+      //   // console.log(d)
+      //   console.log(length(d[2]))
+      //   console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
+      // }
       ctx.beginPath();
       ctx.moveTo(xPos - spikeWidth / 2, yPos);
       ctx.lineTo(xPos + spikeWidth / 2, yPos);
       ctx.lineTo(xPos, yPos - length(d[3]));
       ctx.closePath();
-      ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`;
+
+      ctx.fillStyle = 'yellow';
+      // ctx.fillStyle = 'rgb(255, 253, 216, 0.7)';
+      // ctx.fillStyle = color(d[2]).split(')')[0]
+
+      // ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
       ctx.fill();
     });
   }
