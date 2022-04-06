@@ -443,14 +443,14 @@ async function getData() {
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
-  const [
-    us,
-    rawUsCases,
-    maxDailyCasesCountiesObj,
-    rawStatesUnfiltered,
-    rawCountiesUnfiltered,
-    countyPopUglyFips
-  ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
+  // const [
+  //   us,
+  //   rawUsCases,
+  //   maxDailyCasesCountiesObj,
+  //   rawStatesUnfiltered,
+  //   rawCountiesUnfiltered,
+  //   countyPopUglyFips
+  // ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
 
   // console.log('rawUsCases', rawUsCases)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
