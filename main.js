@@ -448,9 +448,7 @@ async function getData() {
     rawUsCases,
     maxDailyCasesCountiesObj,
     rawStatesUnfiltered,
-    // rawCountiesUnfiltered,
     countyPopUglyFips
-  // ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
   ] = await Promise.all([u, ruc, mdcco, rsuf, cpuf]);
 
   // ---------------------------
@@ -655,7 +653,7 @@ const colorCutoff = 400
     if (val <= colorCutoff) {
       return color1(val)
     } else {
-      console.log('color2')
+      // console.log('color2')
       return color2(val)
     }
   }
@@ -1047,8 +1045,8 @@ const updateTicker = ticker(mapSvg)
   console.log('frames2', frames[0])
 
   // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
-  // const maxDailyCasesCountiesObj = getMaxDailyCasesCounties()
-  // console.log('maxDailyCasesCountiesObj', maxDailyCasesCountiesObj)
+  const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
+  console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
   
   // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
@@ -1174,7 +1172,15 @@ const updateTicker = ticker(mapSvg)
 
   const draw = frame => {
     // frame.counties.forEach(d => {
+    //   if (d[0] === "06059") {
+    //     console.log('---')
+    //     console.log('LA')
+    //     console.log('d[2]', d[2])
+    //     console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
+    //   }
     //   if (d[0] === "48113") {
+    //     console.log('Dallas')
+    //     console.log('d[2]', d[2])
     //     console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
     //   }
     // })
@@ -1183,22 +1189,18 @@ const updateTicker = ticker(mapSvg)
     frame.counties.forEach(d => {
       const xPos = countyPositions.get(d[0])[0];
       const yPos = countyPositions.get(d[0])[1];
-      // if (d[0] === "48113") {
-      //   // console.log(d)
-      //   console.log(length(d[2]))
-      //   console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
-      // }
       ctx.beginPath();
       ctx.moveTo(xPos - spikeWidth / 2, yPos);
       ctx.lineTo(xPos + spikeWidth / 2, yPos);
       ctx.lineTo(xPos, yPos - length(d[3]));
       ctx.closePath();
+      try {
+        ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
+      } catch {
+        console.log(d)
+        ctx.fillStyle = 'blue';
+      }
 
-      ctx.fillStyle = 'yellow';
-      // ctx.fillStyle = 'rgb(255, 253, 216, 0.7)';
-      // ctx.fillStyle = color(d[2]).split(')')[0]
-
-      // ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
       ctx.fill();
     });
   }
