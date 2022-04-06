@@ -443,22 +443,63 @@ async function getData() {
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
-  // const [
-  //   us,
-  //   rawUsCases,
-  //   maxDailyCasesCountiesObj,
-  //   rawStatesUnfiltered,
-  //   rawCountiesUnfiltered,
-  //   countyPopUglyFips
+  const [
+    us,
+    rawUsCases,
+    maxDailyCasesCountiesObj,
+    rawStatesUnfiltered,
+    // rawCountiesUnfiltered,
+    countyPopUglyFips
   // ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
+  ] = await Promise.all([u, ruc, mdcco, rsuf, cpuf]);
 
+  // ---------------------------
+  // JHU EXPERIMENTS
+
+  const jhuStart = performance.now()
+  
   const jhuRaw = await d3.csv(
     "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
-  )
+    )
+    
+  const jhuMiddle = performance.now()
 
-  console.log(jhuRaw)
+  function processDataYa(data) {
+    const dataFiltered = data.filter(
+      (d) => d.FIPS.length > 5 || d.FIPS.length === 0
+    );
+    return dataFiltered.map((d) => {
+      const split = d.FIPS.split(".");
+      let fips = split[0];
+      if (fips.length === 4) fips = "0".concat(fips);
+      d.fips = fips;
+      return d;
+    });
+  }
 
-  d3.selectAll('.step').text('data loaded')
+  const jhuProcessed = processDataYa(jhuRaw)
+
+  const rawCountiesUnfiltered = [];
+  await jhuProcessed.forEach((d) => {
+    for (const property in d) {
+      const dateObj = d3.timeParse("%m/%d/%y")(property);
+      if (dateObj)
+        rawCountiesUnfiltered.push({
+          fips: d.fips,
+          date: d3.timeFormat("%Y-%m-%d")(dateObj),
+          state: d.Province_State,
+          county: d.Admin2,
+          cases: d[property]
+          // dateObj: dateObj
+        });
+    }
+  });
+
+  const jhuEnd = performance.now()
+
+  console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
+  console.log('1st', jhuMiddle - jhuStart)
+  console.log('2nd', jhuEnd - jhuMiddle)
 
   // console.log('rawUsCases', rawUsCases)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
