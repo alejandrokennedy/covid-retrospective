@@ -477,7 +477,8 @@ async function getData() {
 
   const jhuProcessed = processDataYa(jhuRaw)
 
-  const rawCountiesUnfiltered = [];
+  // const rawCountiesUnfiltered = [];
+  const rawCountiesUnfilteredDummy = [];
   await jhuProcessed.forEach((d) => {
     for (const property in d) {
       const dateObj = d3.timeParse("%m/%d/%y")(property);
@@ -1171,20 +1172,6 @@ const updateTicker = ticker(mapSvg)
   // // DRAWING: SPIKES
 
   const draw = frame => {
-    // frame.counties.forEach(d => {
-    //   if (d[0] === "06059") {
-    //     console.log('---')
-    //     console.log('LA')
-    //     console.log('d[2]', d[2])
-    //     console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
-    //   }
-    //   if (d[0] === "48113") {
-    //     console.log('Dallas')
-    //     console.log('d[2]', d[2])
-    //     console.log('color', color(d[2]).split(')')[0] + `, ${opacity})`)
-    //   }
-    // })
-
     ctx.clearRect(0, 0, mapWidth, mapHeight);
     frame.counties.forEach(d => {
       const xPos = countyPositions.get(d[0])[0];
@@ -1194,6 +1181,7 @@ const updateTicker = ticker(mapSvg)
       ctx.lineTo(xPos + spikeWidth / 2, yPos);
       ctx.lineTo(xPos, yPos - length(d[3]));
       ctx.closePath();
+
       try {
         ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
       } catch {
