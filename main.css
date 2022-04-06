@@ -1,6 +1,6 @@
-#viz-container {
+/* #viz-container {
   border: 1px solid fuchsia;
-}
+} */
 
 #container {
   /* border: 1px solid green; */
@@ -24,7 +24,7 @@
 }
 
 #mapAndControls {
-  border: 2px solid orangered;
+  /* border: 2px solid orangered; */
   /* height: calc(100vh - 52px); */
   /* height: calc(100vh - 4px); */
   /* height: 100vh; */
