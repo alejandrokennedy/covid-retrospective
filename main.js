@@ -452,6 +452,12 @@ async function getData() {
   //   countyPopUglyFips
   // ] = await Promise.all([u, ruc, mdcco, rsuf, rcuf, cpuf]);
 
+  const jhuRaw = await d3.csv(
+    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
+  )
+
+  console.log(jhuRaw)
+
   // console.log('rawUsCases', rawUsCases)
   // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
