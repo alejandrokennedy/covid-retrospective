@@ -477,8 +477,8 @@ async function getData() {
 
   const jhuProcessed = processDataYa(jhuRaw)
 
-  // const rawCountiesUnfiltered = [];
-  const rawCountiesUnfilteredDummy = [];
+  const rawCountiesUnfiltered = [];
+  // const rawCountiesUnfilteredDummy = [];
   await jhuProcessed.forEach((d) => {
     for (const property in d) {
       const dateObj = d3.timeParse("%m/%d/%y")(property);
@@ -1015,252 +1015,252 @@ const updateTicker = ticker(mapSvg)
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
 
 
-  let statesMap = new Map(
-    statesList.map(state => [
-      state,
-      0
-    ])
-  )
+  // let statesMap = new Map(
+  //   statesList.map(state => [
+  //     state,
+  //     0
+  //   ])
+  // )
 
-  frames.forEach(d => {
-    d.statesCasesStarted = new Map(statesList.map(state => {
-      const obj = statesByPlace.get(state).get(d.date)
-      if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
-      return [
-        state,
-        statesMap.get(state)
-      ]
-    }))
+  // frames.forEach(d => {
+  //   d.statesCasesStarted = new Map(statesList.map(state => {
+  //     const obj = statesByPlace.get(state).get(d.date)
+  //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
+  //     return [
+  //       state,
+  //       statesMap.get(state)
+  //     ]
+  //   }))
   
-    d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
-      county,
-      countiesByPlace.get(county).get(d.date)
-        ? countiesByPlace.get(county).get(d.date)['smaRound']
-        : 0,
-      countiesByPlace.get(county).get(d.date)
-        ? countiesByPlace.get(county).get(d.date)['perHundThou']
-        : 0
-    ])
-  })
+  //   d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
+  //     county,
+  //     countiesByPlace.get(county).get(d.date)
+  //       ? countiesByPlace.get(county).get(d.date)['smaRound']
+  //       : 0,
+  //     countiesByPlace.get(county).get(d.date)
+  //       ? countiesByPlace.get(county).get(d.date)['perHundThou']
+  //       : 0
+  //   ])
+  // })
 
-  console.log('frames2', frames[0])
+  // console.log('frames2', frames[0])
 
-  // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
-  const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
-  console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
+  // // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
+  // const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
+  // console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
   
-  // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-  // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+  // // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+  // // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
 
-  function getMaxDailyCasesCounties() {
-    let max = 0
-    let theDate
-    let perCapita = 0
-    let perCapitaDate
-    const obj = {}
-    for (let date of frames) {
-      const maxOfDay = d3.max(date.counties.map(d => d[1]));
-      if (maxOfDay > max) {
-        max = maxOfDay
-        theDate = date.date
-      }
+  // function getMaxDailyCasesCounties() {
+  //   let max = 0
+  //   let theDate
+  //   let perCapita = 0
+  //   let perCapitaDate
+  //   const obj = {}
+  //   for (let date of frames) {
+  //     const maxOfDay = d3.max(date.counties.map(d => d[1]));
+  //     if (maxOfDay > max) {
+  //       max = maxOfDay
+  //       theDate = date.date
+  //     }
 
-      const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
-      if (maxPerCapitaOfDay > perCapita) {
-        perCapita = maxPerCapitaOfDay
-        perCapitaDate = date.date
-      }
-    }
-    obj.max = max
-    obj.maxDate = theDate
-    obj.perCapita = perCapita
-    obj.perCapitaDate = perCapitaDate
-    return obj
-  }
+  //     const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
+  //     if (maxPerCapitaOfDay > perCapita) {
+  //       perCapita = maxPerCapitaOfDay
+  //       perCapitaDate = date.date
+  //     }
+  //   }
+  //   obj.max = max
+  //   obj.maxDate = theDate
+  //   obj.perCapita = perCapita
+  //   obj.perCapitaDate = perCapitaDate
+  //   return obj
+  // }
 
-  const length = d3.scaleLinear()
-    .domain([0, maxDailyCasesCounties])
-    .range([0, spikeMax])
+  // const length = d3.scaleLinear()
+  //   .domain([0, maxDailyCasesCounties])
+  //   .range([0, spikeMax])
 
-  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
-  // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
-  // const color = d3.scaleSequential(interpolator)
-  //   .domain([0, maxPerHundThouCounties])
+  // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
+  // // const color = d3.scaleSequential(interpolator)
+  // //   .domain([0, maxPerHundThouCounties])
+  // //   .clamp(true)
+  // //   .nice()
+
+  // const lengthOfInterest = length.invert(spikeWidth / 2)
+  
+  // function findLegendMax() {
+  //   let i = 550
+  //   let arr = testMaxes(i)
+  //   if (arr.length === 0) {
+  //     while (arr.length === 0) {
+  //       i -= 10
+  //       arr = testMaxes(i)
+  //     }
+  //     return i
+  //   }
+  //   while (arr.length > 0) {
+  //     i += 10
+  //     arr = testMaxes(i)
+  //   }
+  //   return i
+  // }
+  // function testMaxes(num) {
+  //   let arr = []
+  //   for (let date of frames) {
+  //     date.counties.forEach(d => {
+  //       if (d[2] > num && d[1] > lengthOfInterest) {
+  //         return arr.push(d)
+  //       }
+  //     })
+  //   }
+  //   return arr;
+  // }
+
+  // // const legendMax = findLegendMax()
+  // const legendMax = 1000
+  // const maxColor = color(legendMax)
+  // // console.log('legendMax', legendMax)
+
+  // const intoThirds = Math.round(legendMax / 3)
+  // const maxMinusThird = color(legendMax - intoThirds)
+  // const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
+  // // console.log(maxMinusTwoThirds)
+  // // console.log(maxMinusThird)
+  // // console.log(maxColor)
+
+  // const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
+  // // const legendColor = d3.scaleSequential(interpolator)
+  // const legendColor = d3.scaleSequential(interpolator1)
+  // // const legendColor = d3.scaleSequential(legendInterpolator)
+  //   .domain([0, legendMax])
   //   .clamp(true)
   //   .nice()
 
-  const lengthOfInterest = length.invert(spikeWidth / 2)
+  // legend({
+  //   color: color1,
+  //   title: "Cases / 100,000 People",
+  //   // width: colorLegendWidth * 2 / 3,
+  //   width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
+  //   marginLeft: 15,
+  //   marginRight: 12,
+  //   // xVal: colorLegendOffset,
+  //   xVal: ua.device.type === "Mobile" ? 0 : colorLegendOffset,
+  //   yVal: headerOffset,
+  //   tickValues: [0, 100, 200, 300, colorCutoff]
+  // })
+
+  // legend({
+  //   color: color2,
+  //   // width: colorLegendWidth * 1 / 3,
+  //   width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
+  //   marginLeft: 12,
+  //   marginRight: 15,
+  //   xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
+  //   yVal: headerOffset,
+  //   tickValues: [colorCutoff, 2000]
+  // })
+
+  // // ------------------------------------------------------
+  // // // DATA: RANKING
   
-  function findLegendMax() {
-    let i = 550
-    let arr = testMaxes(i)
-    if (arr.length === 0) {
-      while (arr.length === 0) {
-        i -= 10
-        arr = testMaxes(i)
-      }
-      return i
-    }
-    while (arr.length > 0) {
-      i += 10
-      arr = testMaxes(i)
-    }
-    return i
-  }
-  function testMaxes(num) {
-    let arr = []
-    for (let date of frames) {
-      date.counties.forEach(d => {
-        if (d[2] > num && d[1] > lengthOfInterest) {
-          return arr.push(d)
-        }
-      })
-    }
-    return arr;
-  }
+  // const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
 
-  // const legendMax = findLegendMax()
-  const legendMax = 1000
-  const maxColor = color(legendMax)
-  // console.log('legendMax', legendMax)
+  // // ------------------------------------------------------
+  // // // DRAWING: SPIKES
 
-  const intoThirds = Math.round(legendMax / 3)
-  const maxMinusThird = color(legendMax - intoThirds)
-  const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
-  // console.log(maxMinusTwoThirds)
-  // console.log(maxMinusThird)
-  // console.log(maxColor)
+  // const draw = frame => {
+  //   ctx.clearRect(0, 0, mapWidth, mapHeight);
+  //   frame.counties.forEach(d => {
+  //     const xPos = countyPositions.get(d[0])[0];
+  //     const yPos = countyPositions.get(d[0])[1];
+  //     ctx.beginPath();
+  //     ctx.moveTo(xPos - spikeWidth / 2, yPos);
+  //     ctx.lineTo(xPos + spikeWidth / 2, yPos);
+  //     ctx.lineTo(xPos, yPos - length(d[3]));
+  //     ctx.closePath();
 
-  const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
-  // const legendColor = d3.scaleSequential(interpolator)
-  const legendColor = d3.scaleSequential(interpolator1)
-  // const legendColor = d3.scaleSequential(legendInterpolator)
-    .domain([0, legendMax])
-    .clamp(true)
-    .nice()
+  //     try {
+  //       ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
+  //     } catch {
+  //       console.log(d)
+  //       ctx.fillStyle = 'blue';
+  //     }
 
-  legend({
-    color: color1,
-    title: "Cases / 100,000 People",
-    // width: colorLegendWidth * 2 / 3,
-    width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
-    marginLeft: 15,
-    marginRight: 12,
-    // xVal: colorLegendOffset,
-    xVal: ua.device.type === "Mobile" ? 0 : colorLegendOffset,
-    yVal: headerOffset,
-    tickValues: [0, 100, 200, 300, colorCutoff]
-  })
-
-  legend({
-    color: color2,
-    // width: colorLegendWidth * 1 / 3,
-    width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
-    marginLeft: 12,
-    marginRight: 15,
-    xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
-    yVal: headerOffset,
-    tickValues: [colorCutoff, 2000]
-  })
-
-  // ------------------------------------------------------
-  // // DATA: RANKING
-  
-  const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
-
-  // ------------------------------------------------------
-  // // DRAWING: SPIKES
-
-  const draw = frame => {
-    ctx.clearRect(0, 0, mapWidth, mapHeight);
-    frame.counties.forEach(d => {
-      const xPos = countyPositions.get(d[0])[0];
-      const yPos = countyPositions.get(d[0])[1];
-      ctx.beginPath();
-      ctx.moveTo(xPos - spikeWidth / 2, yPos);
-      ctx.lineTo(xPos + spikeWidth / 2, yPos);
-      ctx.lineTo(xPos, yPos - length(d[3]));
-      ctx.closePath();
-
-      try {
-        ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
-      } catch {
-        console.log(d)
-        ctx.fillStyle = 'blue';
-      }
-
-      ctx.fill();
-    });
-  }
-
-  // const update = frame => {
-  //   try {
-  //     const prevCounties = prevKF.get(frame).counties;
-  //     const timer = d3.timer(elapsed => {
-  //       const t = Math.min(1, d3.easeLinear(elapsed / duration));
-  //       // const t = Math.min(1, dateProgress);
-  //       frame.counties.forEach((d, i) => {
-  //         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-  //         d.splice(3, 1, tweenCount);
-  //       });
-  //       draw(frame);
-  //       if (t === 1) timer.stop();
-  //     });
-  //   } catch {
-  //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
-  //   }
+  //     ctx.fill();
+  //   });
   // }
 
-  // ------------------------------------------------------
-  // // DRAWING: SPIKE LEGEND
+  // // const update = frame => {
+  // //   try {
+  // //     const prevCounties = prevKF.get(frame).counties;
+  // //     const timer = d3.timer(elapsed => {
+  // //       const t = Math.min(1, d3.easeLinear(elapsed / duration));
+  // //       // const t = Math.min(1, dateProgress);
+  // //       frame.counties.forEach((d, i) => {
+  // //         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+  // //         d.splice(3, 1, tweenCount);
+  // //       });
+  // //       draw(frame);
+  // //       if (t === 1) timer.stop();
+  // //     });
+  // //   } catch {
+  // //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
+  // //   }
+  // // }
+
+  // // ------------------------------------------------------
+  // // // DRAWING: SPIKE LEGEND
   
-  const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
+  // const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
 
-  const spikeLegend = mapSvg.append('g')
-    .attr('class', 'spikeLegend hidden hideMe')
-    .attr('text-anchor', 'middle')
-    .attr('font-size', 8)
-    .attr('fill', defaultTextColor)
-    .attr("font-family", "helvetica")
+  // const spikeLegend = mapSvg.append('g')
+  //   .attr('class', 'spikeLegend hidden hideMe')
+  //   .attr('text-anchor', 'middle')
+  //   .attr('font-size', 8)
+  //   .attr('fill', defaultTextColor)
+  //   .attr("font-family", "helvetica")
 
-  const spikeLegendGs = spikeLegend.selectAll('g')
-    // .data(length.ticks(4).slice(1).reverse())
-    .data([20000, 10000, 5000])
-   .join('g')
-    .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 20})`)
-    // .attr('transform', (d, i) => ua.device.type === 'Mobile'
-    //   ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
-    //   : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
+  // const spikeLegendGs = spikeLegend.selectAll('g')
+  //   // .data(length.ticks(4).slice(1).reverse())
+  //   .data([20000, 10000, 5000])
+  //  .join('g')
+  //   .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 20})`)
+  //   // .attr('transform', (d, i) => ua.device.type === 'Mobile'
+  //   //   ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
+  //   //   : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
 
-  spikeLegendGs.append('path')
-    .style('opacity', opacity)
-    .attr('d', d => makeSpike(length(d)))
+  // spikeLegendGs.append('path')
+  //   .style('opacity', opacity)
+  //   .attr('d', d => makeSpike(length(d)))
 
-  spikeLegendGs.append('text')
-    .attr('dy', '1.1em')
-    .text(length.tickFormat(4, "s"))
+  // spikeLegendGs.append('text')
+  //   .attr('dy', '1.1em')
+  //   .text(length.tickFormat(4, "s"))
 
-  const spikeLegendDescriptionWidth = spikeLegend.node().getBoundingClientRect().width
+  // const spikeLegendDescriptionWidth = spikeLegend.node().getBoundingClientRect().width
 
-  spikeLegend.append('text')
-    .attr('dy', '1.1em')
-    .attr('text-anchor', 'end')
-    .attr("font-weight", "bold")
-    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 20})`)
-    // ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
-    // .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${ua.device.type === "Mobile"
-    //   ? properHeight - 10
-    //   : properHeight - 10})`)
-    .text('New Cases')
+  // spikeLegend.append('text')
+  //   .attr('dy', '1.1em')
+  //   .attr('text-anchor', 'end')
+  //   .attr("font-weight", "bold")
+  //   .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 20})`)
+  //   // ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
+  //   // .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${ua.device.type === "Mobile"
+  //   //   ? properHeight - 10
+  //   //   : properHeight - 10})`)
+  //   .text('New Cases')
 
-  function scrub(keyframe) {
-    updateTicker(keyframe);
-    updateStateShapes(keyframe)
-    updateProgress(keyframe)
-  }
+  // function scrub(keyframe) {
+  //   updateTicker(keyframe);
+  //   updateStateShapes(keyframe)
+  //   updateProgress(keyframe)
+  // }
 
-  const theEnd = performance.now()
-  console.log('rest: ', theEnd - postPromiseAll)
+  // const theEnd = performance.now()
+  // console.log('rest: ', theEnd - postPromiseAll)
 
 }
 
