@@ -459,7 +459,13 @@ async function getData() {
   // const jhuRaw = await d3.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
 
   // const jhuRaw = await d3.csv('./data/time_series_covid19_confirmed_US.csv')
-  const us = await d3.json('./data/us.json')
+  
+  const all = await d3.json('./data/all.json')
+
+  console.log(all)
+  console.log(all.us)
+  console.log(all.jhu)
+  
   // const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
 
   // const jhuMiddle = performance.now()
@@ -496,7 +502,7 @@ async function getData() {
   //   }
   // });
 
-  d3.selectAll('.step').text('test 6')
+  d3.selectAll('.step').text('test 7')
 
   // console.log('commented out Promise.all')
 
