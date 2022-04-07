@@ -443,13 +443,13 @@ async function getData() {
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
-  const [
-    us,
-    rawUsCases,
-    maxDailyCasesCountiesObj,
-    rawStatesUnfiltered,
-    countyPopUglyFips
-  ] = await Promise.all([u, ruc, mdcco, rsuf, cpuf]);
+  // const [
+  //   us,
+  //   rawUsCases,
+  //   maxDailyCasesCountiesObj,
+  //   rawStatesUnfiltered,
+  //   countyPopUglyFips
+  // ] = await Promise.all([u, ruc, mdcco, rsuf, cpuf]);
 
   // ---------------------------
   // JHU EXPERIMENTS
@@ -494,7 +494,7 @@ async function getData() {
     }
   });
 
-  console.log('line 497')
+  console.log('commented out Promise.all')
 
   // const jhuEnd = performance.now()
 
