@@ -526,6 +526,8 @@ async function getData() {
     let str = d.id.toString()
     d.id = str.length === 4 ? '0'.concat(str) : str
   })
+
+  console.log('line 530')
   
 //---------------------------------------------------------
 // // US CASES DATA + DRAWING
