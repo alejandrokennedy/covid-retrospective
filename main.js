@@ -494,40 +494,42 @@ async function getData() {
     }
   });
 
-  const jhuEnd = performance.now()
+  console.log('line 497')
 
-  console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-  console.log('1st', jhuMiddle - jhuStart)
-  console.log('2nd', jhuEnd - jhuMiddle)
+  // const jhuEnd = performance.now()
 
-  // console.log('rawUsCases', rawUsCases)
-  // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
+  // console.log('1st', jhuMiddle - jhuStart)
+  // console.log('2nd', jhuEnd - jhuMiddle)
 
-  const postPromiseAll = performance.now()
-  console.log('after fetches: ', postPromiseAll - prePromiseAll)
+  // // console.log('rawUsCases', rawUsCases)
+  // // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
+  // // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
 
-  const usStates = topojson.feature(us, us.objects.states)
-  const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
-  // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
-  const path = d3.geoPath().projection(projection)
+  // const postPromiseAll = performance.now()
+  // console.log('after fetches: ', postPromiseAll - prePromiseAll)
 
-  mapSvg.append('g')
-    .attr('class', 'states')
-    .selectAll('path')
-   .data(usStates.features)
-    .enter().append('path')
-    .attr('stroke', mapStroke)
-    .attr('fill', mapFill)
-    .attr('class', d => `stateShape f${d.id} hidden`)
-    .attr('d', path)
+  // const usStates = topojson.feature(us, us.objects.states)
+  // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
+  // // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
+  // const path = d3.geoPath().projection(projection)
 
-  us.objects.counties.geometries.forEach(d => {
-    let str = d.id.toString()
-    d.id = str.length === 4 ? '0'.concat(str) : str
-  })
+  // mapSvg.append('g')
+  //   .attr('class', 'states')
+  //   .selectAll('path')
+  //  .data(usStates.features)
+  //   .enter().append('path')
+  //   .attr('stroke', mapStroke)
+  //   .attr('fill', mapFill)
+  //   .attr('class', d => `stateShape f${d.id} hidden`)
+  //   .attr('d', path)
 
-  console.log('line 530')
+  // us.objects.counties.geometries.forEach(d => {
+  //   let str = d.id.toString()
+  //   d.id = str.length === 4 ? '0'.concat(str) : str
+  // })
+
+  // console.log('line 530')
   
 //---------------------------------------------------------
 // // US CASES DATA + DRAWING
