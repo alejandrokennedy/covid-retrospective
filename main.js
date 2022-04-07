@@ -460,24 +460,24 @@ async function getData() {
     "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
     )
 
-  console.log('just loading jhu')
-    
   // const jhuMiddle = performance.now()
 
-  // function processDataYa(data) {
-  //   const dataFiltered = data.filter(
-  //     (d) => d.FIPS.length > 5 || d.FIPS.length === 0
-  //   );
-  //   return dataFiltered.map((d) => {
-  //     const split = d.FIPS.split(".");
-  //     let fips = split[0];
-  //     if (fips.length === 4) fips = "0".concat(fips);
-  //     d.fips = fips;
-  //     return d;
-  //   });
-  // }
+  function processDataYa(data) {
+    const dataFiltered = data.filter(
+      (d) => d.FIPS.length > 5 || d.FIPS.length === 0
+    );
+    return dataFiltered.map((d) => {
+      const split = d.FIPS.split(".");
+      let fips = split[0];
+      if (fips.length === 4) fips = "0".concat(fips);
+      d.fips = fips;
+      return d;
+    });
+  }
 
-  // const jhuProcessed = processDataYa(jhuRaw)
+  const jhuProcessed = processDataYa(jhuRaw)
+
+  d3.selectAll('.step').text('test 0')
 
   // const rawCountiesUnfiltered = [];
   // // const rawCountiesUnfilteredDummy = [];
