@@ -477,24 +477,24 @@ async function getData() {
 
   const jhuProcessed = processDataYa(jhuRaw)
 
-  d3.selectAll('.step').text('test 0')
+  const rawCountiesUnfiltered = [];
+  // const rawCountiesUnfilteredDummy = [];
+  await jhuProcessed.forEach((d) => {
+    for (const property in d) {
+      const dateObj = d3.timeParse("%m/%d/%y")(property);
+      if (dateObj)
+        rawCountiesUnfiltered.push({
+          fips: d.fips,
+          date: d3.timeFormat("%Y-%m-%d")(dateObj),
+          state: d.Province_State,
+          county: d.Admin2,
+          cases: d[property]
+          // dateObj: dateObj
+        });
+    }
+  });
 
-  // const rawCountiesUnfiltered = [];
-  // // const rawCountiesUnfilteredDummy = [];
-  // await jhuProcessed.forEach((d) => {
-  //   for (const property in d) {
-  //     const dateObj = d3.timeParse("%m/%d/%y")(property);
-  //     if (dateObj)
-  //       rawCountiesUnfiltered.push({
-  //         fips: d.fips,
-  //         date: d3.timeFormat("%Y-%m-%d")(dateObj),
-  //         state: d.Province_State,
-  //         county: d.Admin2,
-  //         cases: d[property]
-  //         // dateObj: dateObj
-  //       });
-  //   }
-  // });
+  d3.selectAll('.step').text('test 1')
 
   // console.log('commented out Promise.all')
 
