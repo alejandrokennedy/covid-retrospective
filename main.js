@@ -452,7 +452,7 @@ async function getData() {
   // ---------------------------
   // JHU EXPERIMENTS
 
-  const jhuStart = performance.now()
+  // const jhuStart = performance.now()
 
   const all = await d3.json('./data/all.json'),
     us = all.us,
@@ -462,45 +462,28 @@ async function getData() {
   //   rawStatesUnfiltered,
   //   countyPopUglyFips
   
-  const jhuMiddle = performance.now()
+  // const jhuMiddle = performance.now()
 
-  // function processJhuData(data) {
-  //   const dataFiltered = data.filter(
-  //     (d) => d.FIPS.length > 5 || d.FIPS.length === 0
-  //   );
-  //   return dataFiltered.map((d) => {
-  //     const split = d.FIPS.split(".");
-  //     let fips = split[0];
-  //     if (fips.length === 4) fips = "0".concat(fips);
-  //     d.fips = fips;
-  //     return d;
-  //   });
-  // }
+  // const rawCountiesUnfiltered = [];
+  // // const rawCountiesUnfilteredDummy = [];
+  // await jhu.forEach((d) => {
+  //   for (const property in d) {
+  //     const dateObj = d3.timeParse("%m/%d/%y")(property);
+  //     if (dateObj)
+  //       rawCountiesUnfiltered.push({
+  //         fips: d.fips,
+  //         date: d3.timeFormat("%Y-%m-%d")(dateObj),
+  //         state: d.Province_State,
+  //         county: d.Admin2,
+  //         cases: d[property]
+  //         // dateObj: dateObj
+  //       });
+  //   }
+  // });
 
-  // const jhuProcessed = processJhuData(jhuRaw)
+  // const jhuEnd = performance.now()
 
-  console.log('jhu', jhu)
-
-  const rawCountiesUnfiltered = [];
-  // const rawCountiesUnfilteredDummy = [];
-  await jhu.forEach((d) => {
-    for (const property in d) {
-      const dateObj = d3.timeParse("%m/%d/%y")(property);
-      if (dateObj)
-        rawCountiesUnfiltered.push({
-          fips: d.fips,
-          date: d3.timeFormat("%Y-%m-%d")(dateObj),
-          state: d.Province_State,
-          county: d.Admin2,
-          cases: d[property]
-          // dateObj: dateObj
-        });
-    }
-  });
-
-  const jhuEnd = performance.now()
-
-  d3.selectAll('.step').text('test 9')
+  d3.selectAll('.step').text('test 10')
 
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('1st', jhuMiddle - jhuStart)
