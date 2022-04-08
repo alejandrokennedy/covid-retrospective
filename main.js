@@ -1,16 +1,15 @@
 //---------------------------------------------------------
 // SETUP
 
-console.log('diff:', window.outerHeight - window.innerHeight)
 const ua = detect.parse(navigator.userAgent)
-// const properHeight = window.innerHeight - 2 - 52
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 110 : window.innerHeight - 2
 
 const vizContainer = d3.select('#viz-container')
-  .style('height', `${properHeight}px`)
-  .style('width', window.innerWidth - 2)
+.style('height', `${properHeight}px`)
+.style('width', window.innerWidth - 2)
 
-console.log('properHeight', properHeight)
+// console.log('window diff:', window.outerHeight - window.innerHeight)
+// console.log('properHeight', properHeight)
 
 // ------------------------------------------------------
 // // MISCELLANEOUS VARIABLES SETUP
@@ -40,13 +39,12 @@ const body = d3.select('body')
   .style('background-color', '#171717')
   .style('color', 'white')
 
-// console.log('width', d3.select('#viz-container').node().getBoundingClientRect().width)
-
 const container = d3.select('#container')
   .style('position', 'relative')
   .style('margin', '0 auto')
 
-console.log('container width:', container.node().getBoundingClientRect().width)
+// console.log('width', d3.select('#viz-container').node().getBoundingClientRect().width)
+// console.log('container width:', container.node().getBoundingClientRect().width)
 
 // ------------------------------------------------------
 // // MAP SETUP
@@ -455,26 +453,18 @@ async function getData() {
   // JHU EXPERIMENTS
 
   const jhuStart = performance.now()
-  
-  // const jhuRaw = await d3.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
 
-  // const jhuRaw = await d3.csv('./data/time_series_covid19_confirmed_US.csv')
-  
-  d3.selectAll('.step').text('test 8')
-
-  const all = await d3.json('./data/all.json')
-  const us = all.us
-  const maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj
-  const jhuRaw = all.jhuRaw
-  //   rawUsCases,
+  const all = await d3.json('./data/all.json'),
+    us = all.us,
+    maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj,
+    jhu = all.jhu,
+    rawUsCases = all.rawUsCases
   //   rawStatesUnfiltered,
   //   countyPopUglyFips
   
-  // const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
+  const jhuMiddle = performance.now()
 
-  // const jhuMiddle = performance.now()
-
-  // function processDataYa(data) {
+  // function processJhuData(data) {
   //   const dataFiltered = data.filter(
   //     (d) => d.FIPS.length > 5 || d.FIPS.length === 0
   //   );
@@ -487,28 +477,30 @@ async function getData() {
   //   });
   // }
 
-  // const jhuProcessed = processDataYa(jhuRaw)
+  // const jhuProcessed = processJhuData(jhuRaw)
 
-  // const rawCountiesUnfiltered = [];
-  // // const rawCountiesUnfilteredDummy = [];
-  // await jhuProcessed.forEach((d) => {
-  //   for (const property in d) {
-  //     const dateObj = d3.timeParse("%m/%d/%y")(property);
-  //     if (dateObj)
-  //       rawCountiesUnfiltered.push({
-  //         fips: d.fips,
-  //         date: d3.timeFormat("%Y-%m-%d")(dateObj),
-  //         state: d.Province_State,
-  //         county: d.Admin2,
-  //         cases: d[property]
-  //         // dateObj: dateObj
-  //       });
-  //   }
-  // });
+  console.log('jhu', jhu)
 
-  // console.log('commented out Promise.all')
+  const rawCountiesUnfiltered = [];
+  // const rawCountiesUnfilteredDummy = [];
+  await jhu.forEach((d) => {
+    for (const property in d) {
+      const dateObj = d3.timeParse("%m/%d/%y")(property);
+      if (dateObj)
+        rawCountiesUnfiltered.push({
+          fips: d.fips,
+          date: d3.timeFormat("%Y-%m-%d")(dateObj),
+          state: d.Province_State,
+          county: d.Admin2,
+          cases: d[property]
+          // dateObj: dateObj
+        });
+    }
+  });
 
-  // const jhuEnd = performance.now()
+  const jhuEnd = performance.now()
+
+  d3.selectAll('.step').text('test 8')
 
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('1st', jhuMiddle - jhuStart)
