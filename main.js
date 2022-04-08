@@ -500,7 +500,7 @@ async function getData() {
 
   const jhuEnd = performance.now()
 
-  d3.selectAll('.step').text('test 8')
+  d3.selectAll('.step').text('test 9')
 
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('1st', jhuMiddle - jhuStart)
