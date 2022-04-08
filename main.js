@@ -460,11 +460,15 @@ async function getData() {
 
   // const jhuRaw = await d3.csv('./data/time_series_covid19_confirmed_US.csv')
   
-  const all = await d3.json('./data/all.json')
+  d3.selectAll('.step').text('test 8')
 
-  console.log(all)
-  console.log(all.us)
-  console.log(all.jhu)
+  const all = await d3.json('./data/all.json')
+  const us = all.us
+  const maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj
+  const jhuRaw = all.jhuRaw
+  //   rawUsCases,
+  //   rawStatesUnfiltered,
+  //   countyPopUglyFips
   
   // const maxDailyCasesCountiesObj = await d3.json('./data/maxDailyCasesCountiesObj.json')
 
@@ -501,8 +505,6 @@ async function getData() {
   //       });
   //   }
   // });
-
-  d3.selectAll('.step').text('test 7')
 
   // console.log('commented out Promise.all')
 
