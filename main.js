@@ -26,6 +26,7 @@ const defaultTextColor = '#fafafa'
 
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
+const parseJhuDate = d3.timeParse("%m/%d/%y")
 const headerOffset = ua.device.type === "Mobile" ? 8 : 80
 const marginOffset = 30
 
@@ -461,7 +462,7 @@ async function getData() {
     rawUsCases = all.rawUsCases
   //   rawStatesUnfiltered,
   //   countyPopUglyFips
-  
+
   const jhuMiddle = performance.now()
 
   const rawCountiesUnfiltered = [];
@@ -513,112 +514,109 @@ async function getData() {
     d.id = str.length === 4 ? '0'.concat(str) : str
   })
 
-  d3.selectAll('.step').text('test 12')
-
 //---------------------------------------------------------
 // // US CASES DATA + DRAWING
 
-//   rawUsCases.forEach(d => {
-//     d.dateObj = parseDate(d.date),
-//     d.cases = +d.cases,
-//     // d.perCapita = +d.cases / (332403650 / 100000)
-//     d.deaths = +d.deaths
-//   })
+  rawUsCases.forEach(d => {
+    d.dateObj = parseJhuDate(d.date),
+    d.cases = +d.cases
+    // d.perCapita = +d.cases / (332403650 / 100000)
+    // d.deaths = +d.deaths
+  })
 
-//   const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
+  const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
 
-//   const processData = data => {
-//     const tempArr = Array.from(new Array(avgNum), d => 0);
-//     const returnMap = new Map();
+  const processData = data => {
+    const tempArr = Array.from(new Array(avgNum), d => 0);
+    const returnMap = new Map();
   
-//     data.forEach((d, i) => {
-//       const newCases = Math.max(
-//         d.cases - (data[i - 1] ? data[i - 1].cases : 0),
-//         0
-//       );
+    data.forEach((d, i) => {
+      const newCases = Math.max(
+        d.cases - (data[i - 1] ? data[i - 1].cases : 0),
+        0
+      );
   
-//       tempArr.push(newCases);
-//       if (tempArr.length > avgNum) tempArr.shift();
-//       const sma = d3.mean(tempArr);
-//       const smaRound = Math.round(sma);
+      tempArr.push(newCases);
+      if (tempArr.length > avgNum) tempArr.shift();
+      const sma = d3.mean(tempArr);
+      const smaRound = Math.round(sma);
 
-//       let popPerHundThou
-//       let perHundThou
-//       if (data[0].county) {
-//         popPerHundThou = countiesPop.get(id(d)) / 100000
-//         perHundThou = smaRound / popPerHundThou;
-//       }
+      let popPerHundThou
+      let perHundThou
+      if (data[0].county) {
+        popPerHundThou = countiesPop.get(id(d)) / 100000
+        perHundThou = smaRound / popPerHundThou;
+      }
   
-//       returnMap.set(d.date, {
-//         newCases: newCases,
-//         sma: sma,
-//         smaRound: smaRound,
-//         perHundThou: perHundThou
-//       });
-//     });
+      returnMap.set(d.date, {
+        newCases: newCases,
+        sma: sma,
+        smaRound: smaRound,
+        perHundThou: perHundThou
+      });
+    });
   
-//     return returnMap;
-//   }
+    return returnMap;
+  }
 
-//   const usCasesSma = Array.from(processData(rawUsCases))
+  const usCasesSma = Array.from(processData(rawUsCases))
   
-//   usCasesSma.forEach(d => {
-//     // d.smaPerCapita = 
-//     d[1].perCapita = d[1].smaRound / (332403650 / 100000)
-//     // return d
-//   })
+  usCasesSma.forEach(d => {
+    d[1].perCapita = d[1].smaRound / (332403650 / 100000)
+  })
 
 // //---------------------------------------------------------
 // // // DATEDIVS EXPERIMENT
 
+  const dateContainer = d3.select('#story')
+    .append('div')
+    .attr('id', 'dateContainer')
+    .style('position', 'absolute')
+    .style('top', d => {
+      const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
+      const introBounds = d3.select('.intro').node().getBoundingClientRect()
+      return `${openingTitleBounds.height + introBounds.height}px`
+    })
 
-//   const dateContainer = d3.select('#story')
-//     .append('div')
-//     .attr('id', 'dateContainer')
-//     .style('position', 'absolute')
-//     .style('top', d => {
-//       const openingTitleBounds = d3.select('.opening-title').node().getBoundingClientRect()
-//       const introBounds = d3.select('.intro').node().getBoundingClientRect()
-//       return `${openingTitleBounds.height + introBounds.height}px`
-//     })
+  const frames = dates.map(d => ({date: d}))
+  console.log('frames1', frames[0])
 
-//   const frames = dates.map(d => ({date: d}))
-//   console.log('frames1', frames[0])
+  const keyFrames = frames
 
-//   const keyFrames = frames
+  const dateDivs = dateContainer.selectAll('.dateDiv')
+    .data(keyFrames)
+    .join('div')
+    .attr('class', 'dateDiv')
+    .attr('id', (d, i) => i)
+    .attr('height', 10)
+    .attr('width', 20)
+    .style('padding', '70px')
+    // .style('border', '1px solid pink')
+    // .style('opacity', 0.5)
+    .style('opacity', 0.0)
+    .text(d => d.date)
 
-//   const dateDivs = dateContainer.selectAll('.dateDiv')
-//     .data(keyFrames)
-//     .join('div')
-//     .attr('class', 'dateDiv')
-//     .attr('id', (d, i) => i)
-//     .attr('height', 10)
-//     .attr('width', 20)
-//     .style('padding', '70px')
-//     // .style('border', '1px solid pink')
-//     // .style('opacity', 0.5)
-//     .style('opacity', 0.0)
-//     .text(d => d.date)
+  const stepSelection = d3.selectAll('.step')
 
-//   const stepSelection = d3.selectAll('.step')
+  stepSelection
+    .data(chapters)
+    .call(div => {
+      div.filter(d => d.id != 0 && d.id != 1)
+        .style('position', 'absolute')
+        .style('top', d => {
+          const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
+          if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
+        })
+    })
 
-//   stepSelection
-//     .data(chapters)
-//     .call(div => {
-//       div.filter(d => d.id != 0 && d.id != 1)
-//         .style('position', 'absolute')
-//         .style('top', d => {
-//           const div = dateDivs.nodes().find(div => div.innerHTML === d.date)
-//           if (div != undefined) return `${window.pageYOffset + div.getBoundingClientRect().top}px`
-//         })
-//     })
+  d3.select('#footer')
+    .style('position', 'absolute')
+    .style('top', d => {
+      const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
+      return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
+    })
 
-//   d3.select('#footer')
-//     .style('position', 'absolute')
-//     .style('top', d => {
-//       const div = dateDivs.nodes()[dateDivs.nodes().length - 1]
-//       return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
-//     })
+    d3.selectAll('.step').text('test 13')
 
 // // ------------------------------------------------------
 // // // DRAWING: TIMELINE
