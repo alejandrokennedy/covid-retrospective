@@ -483,8 +483,6 @@ async function getData() {
 
   const jhuEnd = performance.now()
 
-  d3.selectAll('.step').text('test 11')
-
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('1st', jhuMiddle - jhuStart)
   // console.log('2nd', jhuEnd - jhuMiddle)
@@ -496,28 +494,27 @@ async function getData() {
   // const postPromiseAll = performance.now()
   // console.log('after fetches: ', postPromiseAll - prePromiseAll)
 
-  // const usStates = topojson.feature(us, us.objects.states)
-  // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
-  // // const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth, mapHeight]], usStates)
-  // const path = d3.geoPath().projection(projection)
+  const usStates = topojson.feature(us, us.objects.states)
+  const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
+  const path = d3.geoPath().projection(projection)
 
-  // mapSvg.append('g')
-  //   .attr('class', 'states')
-  //   .selectAll('path')
-  //  .data(usStates.features)
-  //   .enter().append('path')
-  //   .attr('stroke', mapStroke)
-  //   .attr('fill', mapFill)
-  //   .attr('class', d => `stateShape f${d.id} hidden`)
-  //   .attr('d', path)
+  mapSvg.append('g')
+    .attr('class', 'states')
+    .selectAll('path')
+   .data(usStates.features)
+    .enter().append('path')
+    .attr('stroke', mapStroke)
+    .attr('fill', mapFill)
+    .attr('class', d => `stateShape f${d.id} hidden`)
+    .attr('d', path)
 
-  // us.objects.counties.geometries.forEach(d => {
-  //   let str = d.id.toString()
-  //   d.id = str.length === 4 ? '0'.concat(str) : str
-  // })
+  us.objects.counties.geometries.forEach(d => {
+    let str = d.id.toString()
+    d.id = str.length === 4 ? '0'.concat(str) : str
+  })
 
-  // console.log('line 530')
-  
+  d3.selectAll('.step').text('test 12')
+
 //---------------------------------------------------------
 // // US CASES DATA + DRAWING
 
