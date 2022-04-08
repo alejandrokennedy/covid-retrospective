@@ -462,28 +462,28 @@ async function getData() {
   //   rawStatesUnfiltered,
   //   countyPopUglyFips
   
-  // const jhuMiddle = performance.now()
+  const jhuMiddle = performance.now()
 
-  // const rawCountiesUnfiltered = [];
-  // // const rawCountiesUnfilteredDummy = [];
-  // await jhu.forEach((d) => {
-  //   for (const property in d) {
-  //     const dateObj = d3.timeParse("%m/%d/%y")(property);
-  //     if (dateObj)
-  //       rawCountiesUnfiltered.push({
-  //         fips: d.fips,
-  //         date: d3.timeFormat("%Y-%m-%d")(dateObj),
-  //         state: d.Province_State,
-  //         county: d.Admin2,
-  //         cases: d[property]
-  //         // dateObj: dateObj
-  //       });
-  //   }
-  // });
+  const rawCountiesUnfiltered = [];
+  // const rawCountiesUnfilteredDummy = [];
+  await jhu.forEach((d) => {
+    for (const property in d) {
+      const dateObj = d3.timeParse("%m/%d/%y")(property);
+      if (dateObj)
+        rawCountiesUnfiltered.push({
+          fips: d.fips,
+          date: d3.timeFormat("%Y-%m-%d")(dateObj),
+          state: d.Province_State,
+          county: d.Admin2,
+          cases: d[property]
+          // dateObj: dateObj
+        });
+    }
+  });
 
-  // const jhuEnd = performance.now()
+  const jhuEnd = performance.now()
 
-  d3.selectAll('.step').text('test 10')
+  d3.selectAll('.step').text('test 11')
 
   // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
   // console.log('1st', jhuMiddle - jhuStart)
