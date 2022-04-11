@@ -26,7 +26,7 @@ const defaultTextColor = '#fafafa'
 
 const formatDate = d3.utcFormat("%B %d, %Y")
 const parseDate = d3.timeParse("%Y-%m-%d")
-const parseJhuDate = d3.timeParse("%m/%d/%y")
+// const parseJhuDate = d3.timeParse("%m/%d/%y")
 const headerOffset = ua.device.type === "Mobile" ? 8 : 80
 const marginOffset = 30
 
@@ -420,53 +420,28 @@ async function getData() {
 			}
   
 //---------------------------------------------------------
-// // GEO DATA
+// // COVID DATA
 
-  // EXPERIMENTS vvv
   const prePromiseAll = performance.now()
   console.log('before fetches: ', prePromiseAll - storyFetchEnd)
-
-  const getCsv = (url) => d3.csv(url)
-  const getJson = (url) => d3.json(url)
-
-  const u = getJson('./data/us.json'),
-    mdcco = getJson('./data/maxDailyCasesCountiesObj.json'),
-    cpuf = getCsv('./data/countyPopUglyFips.csv'),
-    
-    ruc = getCsv('./data/us.csv'),
-    rsuf = getCsv('./data/us-states.csv'),
-    // rcuf = getCsv('./data/us-counties.csv')
-    rcuf = getCsv('./data/jhuFlat.csv')
 
     // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-  
-  // const [
-  //   us,
-  //   rawUsCases,
-  //   maxDailyCasesCountiesObj,
-  //   rawStatesUnfiltered,
-  //   countyPopUglyFips
-  // ] = await Promise.all([u, ruc, mdcco, rsuf, cpuf]);
-
-  // ---------------------------
-  // JHU EXPERIMENTS
-
-  // const jhuStart = performance.now()
 
   const all = await d3.json('./data/all.json'),
     us = all.us,
     maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj,
     jhu = all.jhu,
-    rawUsCases = all.rawUsCases
-  //   rawStatesUnfiltered,
-  //   countyPopUglyFips
+    rawUsCases = all.rawUsCases,
+    countyPopUglyFips = all.countyPopUglyFips,
+    fipsLookup = all.fipsLookup,
+    statesNested = all.statesNested
+      // rawStatesUnfiltered, // FILTER STATES?
 
   const jhuMiddle = performance.now()
 
   const rawCountiesUnfiltered = [];
-  // const rawCountiesUnfilteredDummy = [];
   await jhu.forEach((d) => {
     for (const property in d) {
       const dateObj = d3.timeParse("%m/%d/%y")(property);
@@ -477,23 +452,14 @@ async function getData() {
           state: d.Province_State,
           county: d.Admin2,
           cases: d[property]
-          // dateObj: dateObj
         });
     }
   });
 
   const jhuEnd = performance.now()
 
-  // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-  // console.log('1st', jhuMiddle - jhuStart)
-  // console.log('2nd', jhuEnd - jhuMiddle)
-
-  // // console.log('rawUsCases', rawUsCases)
-  // // console.log('rawStatesUnfiltered', rawStatesUnfiltered)
-  // // console.log('rawCountiesUnfiltered', rawCountiesUnfiltered)
-
-  // const postPromiseAll = performance.now()
-  // console.log('after fetches: ', postPromiseAll - prePromiseAll)
+//---------------------------------------------------------
+// // GEO DATA
 
   const usStates = topojson.feature(us, us.objects.states)
   const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
@@ -518,10 +484,9 @@ async function getData() {
 // // US CASES DATA + DRAWING
 
   rawUsCases.forEach(d => {
-    d.dateObj = parseJhuDate(d.date),
+    d.dateObj = parseDate(d.date),
     d.cases = +d.cases
     // d.perCapita = +d.cases / (332403650 / 100000)
-    // d.deaths = +d.deaths
   })
 
   const dates = Array.from(d3.group(rawUsCases, d => d.date).keys())
@@ -616,638 +581,683 @@ async function getData() {
       return `${window.pageYOffset + dateDivs.nodes()[dateDivs.nodes().length - 1].getBoundingClientRect().bottom}px`
     })
 
-    d3.selectAll('.step').text('test 13')
-
 // // ------------------------------------------------------
 // // // DRAWING: TIMELINE
 
-// const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-// const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
-// const colorCutoff = 400
+const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+const colorCutoff = 400
 
-//   const interpolator1 = d3.piecewise(d3.interpolateHsl, ['#fffff2', '#ff8800', '#ff0022'])
-//   const color1 = d3.scaleSequential(interpolator1)
-//     .domain([0, colorCutoff])
-//     // .domain([0, maxPerHundThouCounties])
-//     .clamp(true)
+  const interpolator1 = d3.piecewise(d3.interpolateHsl, ['#fffff2', '#ff8800', '#ff0022'])
+  const color1 = d3.scaleSequential(interpolator1)
+    .domain([0, colorCutoff])
+    // .domain([0, maxPerHundThouCounties])
+    .clamp(true)
   
-//   const interpolator2 = d3.interpolate(color1.range()[1], "rgb(108,99,255)")
-//   const color2 = d3.scaleSequential(interpolator2)
-//     .domain([colorCutoff, maxPerHundThouCounties])
-//     .clamp(true)
+  const interpolator2 = d3.interpolate(color1.range()[1], "rgb(108,99,255)")
+  const color2 = d3.scaleSequential(interpolator2)
+    .domain([colorCutoff, maxPerHundThouCounties])
+    .clamp(true)
 
-//   const color = (val) => {
-//     if (val <= colorCutoff) {
-//       return color1(val)
-//     } else {
-//       // console.log('color2')
-//       return color2(val)
-//     }
-//   }
+  const color = (val) => {
+    if (val <= colorCutoff) {
+      return color1(val)
+    } else {
+      // console.log('color2')
+      return color2(val)
+    }
+  }
 
-//   const tlWidth = ua.device.type === "Mobile" ? mapWidth - marginOffset : mapWidth - colorLegendWidth - marginOffset
-//   const tlHeight = 50
-//   const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
+  const tlWidth = ua.device.type === "Mobile" ? mapWidth - marginOffset : mapWidth - colorLegendWidth - marginOffset
+  const tlHeight = 50
+  const tlMargin = {top: 5, right: 0, bottom: 5, left: 0}
 
-//   const tlX = d3.scaleBand()
-//     .domain(usCasesSma.map(d => d[0]))
-//     .range([tlMargin.left, tlWidth - tlMargin.right])
+  const tlX = d3.scaleBand()
+    .domain(usCasesSma.map(d => d[0]))
+    .range([tlMargin.left, tlWidth - tlMargin.right])
 
-//   const tlY = d3.scaleLinear()
-//     .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
-//     .range([tlHeight - tlMargin.bottom, tlMargin.top])
+  const tlY = d3.scaleLinear()
+    .domain(d3.extent(usCasesSma.map(d => d[1].smaRound)))
+    .range([tlHeight - tlMargin.bottom, tlMargin.top])
 
-//   const tlGroup = mapSvg.append('g')
-//     .attr('class', 'tlBars hidden hideMe')
-//     .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 + headerOffset : headerOffset})`)
-//     // .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 : 0})`)
+  const tlGroup = mapSvg.append('g')
+    .attr('class', 'tlBars hidden hideMe')
+    .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 + headerOffset : headerOffset})`)
+    // .attr('transform', `translate(${0},${ua.device.type === "Mobile" ? 50 : 0})`)
 
-//   tlGroup
-//     .selectAll('rect')
-//   .data(usCasesSma)
-//     .join('rect')
-//     .attr('x', d => tlX(d[0]))
-//     .attr('y', d => tlY(d[1].smaRound))
-//     .attr('width', tlX.bandwidth())
-//     .attr('height', d => tlY(0) - tlY(d[1].smaRound))
-//     .attr('fill', d => color(d[1].perCapita))
+  tlGroup
+    .selectAll('rect')
+  .data(usCasesSma)
+    .join('rect')
+    .attr('x', d => tlX(d[0]))
+    .attr('y', d => tlY(d[1].smaRound))
+    .attr('width', tlX.bandwidth())
+    .attr('height', d => tlY(0) - tlY(d[1].smaRound))
+    .attr('fill', d => color(d[1].perCapita))
 
-//   // EXPLANATION...
-//   const wrap_text_array = (text, max_width) => {
-//     // split the text around spaces (to get individual words)
-//     const words = text.split(/\s+/).reverse();
+  // EXPLANATION...
+  const wrap_text_array = (text, max_width) => {
+    // split the text around spaces (to get individual words)
+    const words = text.split(/\s+/).reverse();
     
-//     // define vars to hold individual words, lines, and all lines
-//     let word,
-//         lines = [ ],
-//         line = [ ];
+    // define vars to hold individual words, lines, and all lines
+    let word,
+        lines = [ ],
+        line = [ ];
     
-//     // add words to a line until we exceed the max_width (in characters)
-//     // when we reach width, add the line to lines and start a new line
-//     while (word = words.pop()) {
-//       line.push(word);
-//       if (line.join(" ").length > max_width) {
-//         line.pop()
-//         lines.push(line.join(" "));
-//         line = [word];
-//       }
-//     }
-//     lines.push(line.join(" "));
+    // add words to a line until we exceed the max_width (in characters)
+    // when we reach width, add the line to lines and start a new line
+    while (word = words.pop()) {
+      line.push(word);
+      if (line.join(" ").length > max_width) {
+        line.pop()
+        lines.push(line.join(" "));
+        line = [word];
+      }
+    }
+    lines.push(line.join(" "));
     
-//     return lines;
-//   }
+    return lines;
+  }
 
-//   const wrap_text_nchar = (text_element, max_width, line_height, unit = "em") => {
+  const wrap_text_nchar = (text_element, max_width, line_height, unit = "em") => {
   
-//     // use a default line_height if not provided
-//     if (!line_height) line_height = 1.1;
+    // use a default line_height if not provided
+    if (!line_height) line_height = 1.1;
     
-//     // wrap the text based on how many characters per line
-//     const text_array = wrap_text_array(text_element.text(), max_width);
+    // wrap the text based on how many characters per line
+    const text_array = wrap_text_array(text_element.text(), max_width);
     
-//     // append a tspan element for each line of text_array
-//     text_element.text(null)
-//       .selectAll("tspan")
-//       .data(text_array).enter()
-//       .append("tspan")
-//       .attr("x", text_element.attr("x"))
-//       .attr("y", text_element.attr("y"))
-//       .attr("dy", (d, i) => `${i * line_height}${unit}`)
-//       .text(d => d);
-//   }
+    // append a tspan element for each line of text_array
+    text_element.text(null)
+      .selectAll("tspan")
+      .data(text_array).enter()
+      .append("tspan")
+      .attr("x", text_element.attr("x"))
+      .attr("y", text_element.attr("y"))
+      .attr("dy", (d, i) => `${i * line_height}${unit}`)
+      .text(d => d);
+  }
 
-//   const explanation = mapSvg.append('text')
-//     .attr('x', tlX.range()[1] / 12)
-//     .attr('y', ua.device.type === "Mobile" ? headerOffset + 120 : headerOffset + tlY(0) + 20)
-//     .attr('class', 'hidden hideMe')
-//     .style('font-family', 'helvetica')
-//     .style('font-size', 10)
-//     .style('fill', defaultTextColor)
-//     .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
+  const explanation = mapSvg.append('text')
+    .attr('x', tlX.range()[1] / 12)
+    .attr('y', ua.device.type === "Mobile" ? headerOffset + 120 : headerOffset + tlY(0) + 20)
+    .attr('class', 'hidden hideMe')
+    .style('font-family', 'helvetica')
+    .style('font-size', 10)
+    .style('fill', defaultTextColor)
+    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
 
-//   explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
-    
+  explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
+  
 // // ------------------------------------------------------
 // // DRAW FUNCTIONS
 
-//   let vizHidden = true
+  let vizHidden = true
 
-//   const progBar = tlGroup.append('rect')
-//     .attr('class', 'progress hidden')
-//     .attr('x', 0)
-//     .attr('y', 0)
-//     .attr('width', 1)
-//     .attr('height', tlHeight)
-//     .style('fill', defaultTextColor)
+  const progBar = tlGroup.append('rect')
+    .attr('class', 'progress hidden')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', 1)
+    .attr('height', tlHeight)
+    .style('fill', defaultTextColor)
 
-//   const tickerText = mapSvg.append('g').append("text")
-//     .attr('class', 'tickerText')
-//     .attr("transform", ua.device.type === "Mobile" ? `translate(${(mapWidth / 2)},${headerOffset + 70})` : `translate(${(tlWidth / 2)},${headerOffset + 10})`)
-//     .style("font", `bold ${10}px var(--sans-serif)`)
-//     .style("font-variant-numeric", "tabular-nums")
-//     .style("text-anchor", "middle")
-//     .style("font-family", `helvetica`)
-//     .style("font-weight", `100`)
-//     .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
-//     .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
-//     .style('fill', defaultTextColor)
-//     .text('');
+  const tickerText = mapSvg.append('g').append("text")
+    .attr('class', 'tickerText')
+    .attr("transform", ua.device.type === "Mobile" ? `translate(${(mapWidth / 2)},${headerOffset + 70})` : `translate(${(tlWidth / 2)},${headerOffset + 10})`)
+    .style("font", `bold ${10}px var(--sans-serif)`)
+    .style("font-variant-numeric", "tabular-nums")
+    .style("text-anchor", "middle")
+    .style("font-family", `helvetica`)
+    .style("font-weight", `100`)
+    .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
+    .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
+    .style('fill', defaultTextColor)
+    .text('');
 
-//   const ticker = svg => {
-//     return keyframe => keyframe !== undefined ? tickerText.text(formatDate(parseDate(keyframe.date))) : tickerText.text('')
-//   }
+  const ticker = svg => {
+    return keyframe => keyframe !== undefined ? tickerText.text(formatDate(parseDate(keyframe.date))) : tickerText.text('')
+  }
 
-//   const progress = svgEl => {
-//     return keyframe => {
-//       if (keyframe !== undefined) {
-//         progBar.attr('x', () => tlX(keyframe.date))
-//       }
-//     }
-//   }
+  const progress = svgEl => {
+    return keyframe => {
+      if (keyframe !== undefined) {
+        progBar.attr('x', () => tlX(keyframe.date))
+      }
+    }
+  }
 
-//   const stateShapes = svg => {
-//     return keyframe => {
-//       if (keyframe !== undefined) {
-//         vizHidden = false
-//         d3.selectAll('.spikeLegend').classed('hidden', false)
-//         d3.select('.colorLegend').classed('hidden', false)
-//         d3.selectAll('.hideMe').classed('hidden', false)
-//         d3.select('.progress').classed('hidden', false)
+  const stateShapes = svg => {
+    return keyframe => {
+      if (keyframe !== undefined) {
+        vizHidden = false
+        d3.selectAll('.spikeLegend').classed('hidden', false)
+        d3.select('.colorLegend').classed('hidden', false)
+        d3.selectAll('.hideMe').classed('hidden', false)
+        d3.select('.progress').classed('hidden', false)
         
-//         if (keyframe.statesCasesStarted)
-//         keyframe.statesCasesStarted.forEach((val, key) => {
-//           if (val) {
-//             d3.select(`.f${fipsLookup[key]}.hidden`)
-//               .classed('hidden', false)
-//               .raise()
-//               .attr('stroke', 'white')
-//               .attr('fill', '#d8d8d8')
-//               .transition().duration(600)
-//               .attr('stroke', mapStroke)
-//               .attr('fill', mapFill)
+        if (keyframe.statesCasesStarted)
+        keyframe.statesCasesStarted.forEach((val, key) => {
+          if (val) {
+            d3.select(`.f${fipsLookup[key]}.hidden`)
+              .classed('hidden', false)
+              .raise()
+              .attr('stroke', 'white')
+              .attr('fill', '#d8d8d8')
+              .transition().duration(600)
+              .attr('stroke', mapStroke)
+              .attr('fill', mapFill)
 
-//           } else {
-//             d3.select(`.f${fipsLookup[key]}`)
-//               .classed('hidden', true)
-//               .attr('stroke', 'none')
-//               .attr('fill', 'none')
-//           }
-//         })
-//       } else {
-//         d3.selectAll('.stateShape').classed('hidden', true)
-//         d3.select('.spikeLegend').classed('hidden', true)
-//         d3.selectAll('.colorLegend').classed('hidden', true)
-//         d3.selectAll('.hideMe').classed('hidden', true)
-//         d3.select('.progress').classed('hidden', true)
-//       }
-//     }
-//   }
+          } else {
+            d3.select(`.f${fipsLookup[key]}`)
+              .classed('hidden', true)
+              .attr('stroke', 'none')
+              .attr('fill', 'none')
+          }
+        })
+      } else {
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.selectAll('.colorLegend').classed('hidden', true)
+        d3.selectAll('.hideMe').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
+      }
+    }
+  }
 
-// // ------------------------------------------------------
-// // // UPDATE FUNCTIONS
-// const updateStateShapes = stateShapes(mapSvg)
-// const updateProgress = progress(tlGroup)
-// const updateTicker = ticker(mapSvg)
+// ------------------------------------------------------
+// // UPDATE FUNCTIONS
+const updateStateShapes = stateShapes(mapSvg)
+const updateProgress = progress(tlGroup)
+const updateTicker = ticker(mapSvg)
 
-//   // let prevCounties
-//   const updateSpikes = (frame, t) => {
-//     try {
-//       const prevCounties = prevKF.get(frame).counties || frame.counties
-//       frame.counties.forEach((d, i) => {
-//         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-//         d.splice(3, 1, tweenCount);
-//       });
-//       draw(frame);
-//     } catch {
-//       if (frame.counties)
-//       frame.counties.forEach(d => d.splice(3, 1, d[1]));
-//     }
-//   }
+  // let prevCounties
+  const updateSpikes = (frame, t) => {
+    try {
+      const prevCounties = prevKF.get(frame).counties || frame.counties
+      frame.counties.forEach((d, i) => {
+        const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+        d.splice(3, 1, tweenCount);
+      });
+      draw(frame);
+    } catch {
+      if (frame.counties)
+      frame.counties.forEach(d => d.splice(3, 1, d[1]));
+    }
+  }
   
-//   let allowEnterExit = true
-//   let allowProgress = true
-//   let terminalFrameId = null
+  let allowEnterExit = true
+  let allowProgress = true
+  let terminalFrameId = null
 
-//   function handleScroll(elId) {
-//     if (allowEnterExit) {
-//       // d3.select(el).style('opacity', 0.5)
-//       allowEnterExit = false
-//       allowProgress = true
-//       const frame = keyFrames[Number(elId)]
-//       scrub(frame)
-//       setTimeout(() => {
-//         allowEnterExit = true
-//         if (terminalFrameId) {
-//           scrub(keyFrames[Number(terminalFrameId)])
-//           updateSpikes(frame, 0)
-//         }
-//         terminalFrameId = null
-//       }, 2)
-//     } else {
-//       allowProgress = false
-//       terminalFrameId = elId
-//     }
-//   }
+  function handleScroll(elId) {
+    if (allowEnterExit) {
+      // d3.select(el).style('opacity', 0.5)
+      allowEnterExit = false
+      allowProgress = true
+      const frame = keyFrames[Number(elId)]
+      scrub(frame)
+      setTimeout(() => {
+        allowEnterExit = true
+        if (terminalFrameId) {
+          scrub(keyFrames[Number(terminalFrameId)])
+          updateSpikes(frame, 0)
+        }
+        terminalFrameId = null
+      }, 2)
+    } else {
+      allowProgress = false
+      terminalFrameId = elId
+    }
+  }
 
-//   enterView({
-//     selector: '.dateDiv',
-//     enter: function(el) {
-//       handleScroll(el.id)
-//     },
-//     progress: function(el, progress) {
-//       if (allowProgress) updateSpikes(keyFrames[Number(el.id)], progress)
-//     },
-//     exit: function(el) {
-//       handleScroll(el.id - 1)
-//     },
-//     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-//     offset: 0.4
-//   })
+  enterView({
+    selector: '.dateDiv',
+    enter: function(el) {
+      handleScroll(el.id)
+    },
+    progress: function(el, progress) {
+      if (allowProgress) updateSpikes(keyFrames[Number(el.id)], progress)
+    },
+    exit: function(el) {
+      handleScroll(el.id - 1)
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  })
 
-//   enterView({
-//     selector: '.step',
-//     enter: function(el) {
-//       el.classList.add('active-chapter');
-//       const chapter = config.chapters.find(chap => chap.id == el.id);
-//     },
-//     progress: function(el, progress) {
-//     },
-//     exit: function(el) {
-//       el.classList.remove('active-chapter');
-//       const chapter = config.chapters.find(chap => chap.id === el.id);
-//       const prevChapter = config.chapters.find(chap => chap.id === (Number(el.id) - 1).toString());
-//       // map[prevChapter.mapAnimation || 'flyTo'](ua.device.type === "Mobile" ? prevChapter.mLocation : prevChapter.location);
-//       // if (prevChapter.onChapterEnter.length > 0) prevChapter.onChapterEnter.forEach(setLayerOpacity)
-//     },
-//     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-//     offset: 0.4
-//   });
+  enterView({
+    selector: '.step',
+    enter: function(el) {
+      el.classList.add('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id == el.id);
+    },
+    progress: function(el, progress) {
+    },
+    exit: function(el) {
+      el.classList.remove('active-chapter');
+      const chapter = config.chapters.find(chap => chap.id === el.id);
+      const prevChapter = config.chapters.find(chap => chap.id === (Number(el.id) - 1).toString());
+      // map[prevChapter.mapAnimation || 'flyTo'](ua.device.type === "Mobile" ? prevChapter.mLocation : prevChapter.location);
+      // if (prevChapter.onChapterEnter.length > 0) prevChapter.onChapterEnter.forEach(setLayerOpacity)
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
 
-//   enterView({
-//     selector: '.introParas',
-//     enter: function(el) {
-//     },
-//     progress: function(el, progress) {
-//       if (!vizHidden) {
-//         vizHidden = true
-//         d3.selectAll('.stateShape').classed('hidden', true)
-//         d3.select('.spikeLegend').classed('hidden', true)
-//         d3.select('.colorLegend').classed('hidden', true)
-//         d3.selectAll('.hideMe').classed('hidden', true)
-//         d3.select('.progress').classed('hidden', true)
-//         d3.select('.tickerText').text('')
-//       }
-//     },
-//     exit: function(el) {
-//     },
-//     // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
-//     offset: 0.4
-//   });
+  enterView({
+    selector: '.introParas',
+    enter: function(el) {
+    },
+    progress: function(el, progress) {
+      if (!vizHidden) {
+        vizHidden = true
+        d3.selectAll('.stateShape').classed('hidden', true)
+        d3.select('.spikeLegend').classed('hidden', true)
+        d3.select('.colorLegend').classed('hidden', true)
+        d3.selectAll('.hideMe').classed('hidden', true)
+        d3.select('.progress').classed('hidden', true)
+        d3.select('.tickerText').text('')
+      }
+    },
+    exit: function(el) {
+    },
+    // offset: ua.device.type === "Mobile" ? 0.45 : 0.6,
+    offset: 0.4
+  });
 
 //   // // // COVID DATA FUNCTIONS & HELPER VARIABLES
 
-//   const features = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]))
+  const features = new Map(topojson.feature(us, us.objects.counties).features.map(d => [d.id, d]))
 
-//   const id = d => d.fips || `${d.county}, ${d.state}`
+  const id = d => d.fips || `${d.county}, ${d.state}`
 
-//   function position({ fips, state, county }) {
-//     if (!fips)
-//       switch (`${county}, ${state}`) {
-//         case 'New York City, New York':
-//           return projection([-74.0060, 40.7128]);
-//         case 'Kansas City, Missouri':
-//           return projection([-94.5786, 39.0997]);
-//         case 'Joplin, Missouri':
-//           return projection([-94.5133, 37.0842]);
-//       }
-//     const feature = features.get(fips);
-//     return feature && path.centroid(feature);
-//   }
+  function position({ fips, state, county }) {
+    if (!fips)
+      switch (`${county}, ${state}`) {
+        case 'New York City, New York':
+          return projection([-74.0060, 40.7128]);
+        case 'Kansas City, Missouri':
+          return projection([-94.5786, 39.0997]);
+        case 'Joplin, Missouri':
+          return projection([-94.5133, 37.0842]);
+      }
+    const feature = features.get(fips);
+    return feature && path.centroid(feature);
+  }
 
-//   // // // COVID DATA TRANSFORMATIONS
+  // // // COVID DATA TRANSFORMATIONS
 
-//   const rawStates = rawStatesUnfiltered.filter(d => {
-//     if (d.state === 'District of Columbia') d.state = 'D.C.'
-//     return !excludedStates.includes(d.fips)
-//   })
-
-//   const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
-  
-//   const statesList = Array.from(d3.group(rawStates, d => d.state).keys())
-//   const countyPositions = new Map(
-//     d3.groups(rawCounties, id)
-//     .map(([id, [d]]) => [id, position(d)])
-//     .filter(([, position]) => position)
-//   )
-
-//   const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
-
-//   const fipsLookup = {}
-//   d3.groups(rawStates, d => d.state, d => d.fips)
-//     .map(x => { return {[x[0]]: x[1][0][0]} })
-//     .forEach(d => {
-//       fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
-//     })
-
-//   // ------------------------------------------------------
-//   // // POPULATION DATA
-
-//   const cityCounties = [
-//     {
-//       STATE: "36",
-//       COUNTY: null,
-//       STNAME: "New York",
-//       CTYNAME: "New York City",
-//       POPESTIMATE2019: "8336817",
-//       FIPS: null
-//     },
-//     {
-//       STATE: "29",
-//       COUNTY: null,
-//       STNAME: "Missouri",
-//       CTYNAME: "Kansas City",
-//       POPESTIMATE2019: "459787",
-//       FIPS: null
-//     },
-//     {
-//       STATE: "29",
-//       COUNTY: null,
-//       STNAME: "Missouri",
-//       CTYNAME: "Joplin",
-//       POPESTIMATE2019: "50150",
-//       FIPS: null
-//     }
-//   ]
-
-//   const nycAreaCodes = ["36061", "36047", "36081", "36005", "36085"]
-
-//   const countyPop = countyPopUglyFips.map(d => {
-//     d.STATE = d3.format("02")(d.STATE);
-//     d.COUNTY = d3.format("03")(d.COUNTY);
-//     d.FIPS = d.STATE.concat(d.COUNTY);
-//     return d;
-//   })
-//   .filter(d => d.COUNTY != '000' && !nycAreaCodes.includes(d.FIPS))
-//   .concat(cityCounties)
-
-//   const popId = d => d.FIPS || `${d.CTYNAME}, ${d.STNAME}`
-
-//   const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
-
-//   // ------------------------------------------------------
-//   // // FRAMES DATA
-
-//   const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
-//   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
-
-  // NOT WORKING WITH STUFF COMMENTED PAST HERE
-
-  // let statesMap = new Map(
-  //   statesList.map(state => [
-  //     state,
-  //     0
-  //   ])
-  // )
-
-  // frames.forEach(d => {
-  //   d.statesCasesStarted = new Map(statesList.map(state => {
-  //     const obj = statesByPlace.get(state).get(d.date)
-  //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1)
-  //     return [
-  //       state,
-  //       statesMap.get(state)
-  //     ]
-  //   }))
-  
-  //   d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
-  //     county,
-  //     countiesByPlace.get(county).get(d.date)
-  //       ? countiesByPlace.get(county).get(d.date)['smaRound']
-  //       : 0,
-  //     countiesByPlace.get(county).get(d.date)
-  //       ? countiesByPlace.get(county).get(d.date)['perHundThou']
-  //       : 0
-  //   ])
+  // const rawStates = rawStatesUnfiltered.filter(d => {
+  //   if (d.state === 'District of Columbia') d.state = 'D.C.'
+  //   return !excludedStates.includes(d.fips)
   // })
 
-  // console.log('frames2', frames[0])
-
-  // // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
-  // const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
-  // console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
+  const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
   
-  // // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-  // // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
-
-  // function getMaxDailyCasesCounties() {
-  //   let max = 0
-  //   let theDate
-  //   let perCapita = 0
-  //   let perCapitaDate
-  //   const obj = {}
-  //   for (let date of frames) {
-  //     const maxOfDay = d3.max(date.counties.map(d => d[1]));
-  //     if (maxOfDay > max) {
-  //       max = maxOfDay
-  //       theDate = date.date
-  //     }
-
-  //     const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
-  //     if (maxPerCapitaOfDay > perCapita) {
-  //       perCapita = maxPerCapitaOfDay
-  //       perCapitaDate = date.date
-  //     }
-  //   }
-  //   obj.max = max
-  //   obj.maxDate = theDate
-  //   obj.perCapita = perCapita
-  //   obj.perCapitaDate = perCapitaDate
-  //   return obj
-  // }
-
-  // const length = d3.scaleLinear()
-  //   .domain([0, maxDailyCasesCounties])
-  //   .range([0, spikeMax])
-
-  // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
-  // // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
-  // // const color = d3.scaleSequential(interpolator)
-  // //   .domain([0, maxPerHundThouCounties])
-  // //   .clamp(true)
-  // //   .nice()
-
-  // const lengthOfInterest = length.invert(spikeWidth / 2)
+  // const oldStatesList = Array.from(d3.group(rawStates, d => d.state).keys())
+  // const statesList = Array.from(d3.group(rawStates, d => d.state).keys())
   
-  // function findLegendMax() {
-  //   let i = 550
-  //   let arr = testMaxes(i)
-  //   if (arr.length === 0) {
-  //     while (arr.length === 0) {
-  //       i -= 10
-  //       arr = testMaxes(i)
-  //     }
-  //     return i
-  //   }
-  //   while (arr.length > 0) {
-  //     i += 10
-  //     arr = testMaxes(i)
-  //   }
-  //   return i
-  // }
-  // function testMaxes(num) {
-  //   let arr = []
-  //   for (let date of frames) {
-  //     date.counties.forEach(d => {
-  //       if (d[2] > num && d[1] > lengthOfInterest) {
-  //         return arr.push(d)
-  //       }
-  //     })
-  //   }
-  //   return arr;
-  // }
+  const statesList = Array.from(Object.keys(fipsLookup))
+  
+  const countyPositions = new Map(
+    d3.groups(rawCounties, id)
+    .map(([id, [d]]) => [id, position(d)])
+    .filter(([, position]) => position)
+  )
 
-  // // const legendMax = findLegendMax()
-  // const legendMax = 1000
-  // const maxColor = color(legendMax)
-  // // console.log('legendMax', legendMax)
+  console.log('statesList', statesList)
 
-  // const intoThirds = Math.round(legendMax / 3)
-  // const maxMinusThird = color(legendMax - intoThirds)
-  // const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
-  // // console.log(maxMinusTwoThirds)
-  // // console.log(maxMinusThird)
-  // // console.log(maxColor)
+  // const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
-  // const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
-  // // const legendColor = d3.scaleSequential(interpolator)
-  // const legendColor = d3.scaleSequential(interpolator1)
-  // // const legendColor = d3.scaleSequential(legendInterpolator)
-  //   .domain([0, legendMax])
+  // const fipsLookup = {}
+  // d3.groups(rawStates, d => d.state, d => d.fips)
+  //   .map(x => { return {[x[0]]: x[1][0][0]} })
+  //   .forEach(d => {
+  //     fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
+  //   })
+
+  console.log('fipsLookup', fipsLookup)
+
+  // ------------------------------------------------------
+  // // POPULATION DATA
+
+  const cityCounties = [
+    {
+      STATE: "36",
+      COUNTY: null,
+      STNAME: "New York",
+      CTYNAME: "New York City",
+      POPESTIMATE2019: "8336817",
+      FIPS: null
+    },
+    {
+      STATE: "29",
+      COUNTY: null,
+      STNAME: "Missouri",
+      CTYNAME: "Kansas City",
+      POPESTIMATE2019: "459787",
+      FIPS: null
+    },
+    {
+      STATE: "29",
+      COUNTY: null,
+      STNAME: "Missouri",
+      CTYNAME: "Joplin",
+      POPESTIMATE2019: "50150",
+      FIPS: null
+    }
+  ]
+
+  const nycAreaCodes = ["36061", "36047", "36081", "36005", "36085"]
+
+  const countyPop = countyPopUglyFips.map(d => {
+    d.STATE = d3.format("02")(d.STATE);
+    d.COUNTY = d3.format("03")(d.COUNTY);
+    d.FIPS = d.STATE.concat(d.COUNTY);
+    return d;
+  })
+  .filter(d => d.COUNTY != '000' && !nycAreaCodes.includes(d.FIPS))
+  .concat(cityCounties)
+
+  const popId = d => d.FIPS || `${d.CTYNAME}, ${d.STNAME}`
+
+  const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
+
+  // ------------------------------------------------------
+  // // FRAMES DATA
+
+  // const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
+  const statesByPlace = new Map(
+  // const sbp = new Map(
+    statesNested.map((d) => {
+      const map = new Map();
+      d[1].forEach((state) => {
+        map.set(state[0], state[1]);
+      });
+      return [d[0], map];
+    })
+  )
+
+  const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
+
+  console.log('statesByPlace', statesByPlace)
+
+  let statesMap = new Map(
+    statesList.map(state => [
+      state,
+      0
+    ])
+  )
+
+  frames.forEach(d => {
+
+    // d.statesCasesStarted = new Map(
+    //   statesList.map((state) => {
+    //     const obj = statesByPlace.get(state).get(d.date);
+    //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1);
+    //     return [state, statesMap.get(state)];
+    //   })
+    // );
+    
+    d.statesCasesStarted = new Map(
+      statesList.map((state) => {
+        let val
+        try {
+          val = statesByPlace.get(state).get(d.date);
+        } catch {
+          'catch'
+        }
+        if (val) if (val > 0) statesMap.set(state, 1);
+        return [state, statesMap.get(state)];
+      })
+    );
+
+    // d.statesCasesStarted = new Map(
+    //   statesList.map((state) => {
+    //     try {
+    //       const val = sbp.get(state).get(d.date);
+    //       console.log(val);
+    //       if (val > 0) statesMap.set(state, 1);
+    //       return [state, statesMap.get(state)];
+    //     } catch {
+    //       console.log("err", state);
+    //     }
+    //   })
+    // );
+  
+    d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
+      county,
+      countiesByPlace.get(county).get(d.date)
+        ? countiesByPlace.get(county).get(d.date)['smaRound']
+        : 0,
+      countiesByPlace.get(county).get(d.date)
+        ? countiesByPlace.get(county).get(d.date)['perHundThou']
+        : 0
+    ])
+  })
+
+  console.log('frames2', frames[0])
+
+  // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
+  const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
+  console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
+  
+  // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
+  // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
+
+  function getMaxDailyCasesCounties() {
+    let max = 0
+    let theDate
+    let perCapita = 0
+    let perCapitaDate
+    const obj = {}
+    for (let date of frames) {
+      const maxOfDay = d3.max(date.counties.map(d => d[1]));
+      if (maxOfDay > max) {
+        max = maxOfDay
+        theDate = date.date
+      }
+
+      const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
+      if (maxPerCapitaOfDay > perCapita) {
+        perCapita = maxPerCapitaOfDay
+        perCapitaDate = date.date
+      }
+    }
+    obj.max = max
+    obj.maxDate = theDate
+    obj.perCapita = perCapita
+    obj.perCapitaDate = perCapitaDate
+    return obj
+  }
+
+  const length = d3.scaleLinear()
+    .domain([0, maxDailyCasesCounties])
+    .range([0, spikeMax])
+
+  // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ff0000', '#ff5900', '#ffb300', '#ffff00'])
+  // // const interpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', '#ffff00'])
+  // const color = d3.scaleSequential(interpolator)
+  //   .domain([0, maxPerHundThouCounties])
   //   .clamp(true)
   //   .nice()
 
-  // legend({
-  //   color: color1,
-  //   title: "Cases / 100,000 People",
-  //   // width: colorLegendWidth * 2 / 3,
-  //   width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
-  //   marginLeft: 15,
-  //   marginRight: 12,
-  //   // xVal: colorLegendOffset,
-  //   xVal: ua.device.type === "Mobile" ? 0 : colorLegendOffset,
-  //   yVal: headerOffset,
-  //   tickValues: [0, 100, 200, 300, colorCutoff]
-  // })
-
-  // legend({
-  //   color: color2,
-  //   // width: colorLegendWidth * 1 / 3,
-  //   width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
-  //   marginLeft: 12,
-  //   marginRight: 15,
-  //   xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
-  //   yVal: headerOffset,
-  //   tickValues: [colorCutoff, 2000]
-  // })
-
-  // // ------------------------------------------------------
-  // // // DATA: RANKING
+  const lengthOfInterest = length.invert(spikeWidth / 2)
   
-  // const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
+  function findLegendMax() {
+    let i = 550
+    let arr = testMaxes(i)
+    if (arr.length === 0) {
+      while (arr.length === 0) {
+        i -= 10
+        arr = testMaxes(i)
+      }
+      return i
+    }
+    while (arr.length > 0) {
+      i += 10
+      arr = testMaxes(i)
+    }
+    return i
+  }
+  function testMaxes(num) {
+    let arr = []
+    for (let date of frames) {
+      date.counties.forEach(d => {
+        if (d[2] > num && d[1] > lengthOfInterest) {
+          return arr.push(d)
+        }
+      })
+    }
+    return arr;
+  }
 
-  // // ------------------------------------------------------
-  // // // DRAWING: SPIKES
+  // const legendMax = findLegendMax()
+  const legendMax = 1000
+  const maxColor = color(legendMax)
+  // console.log('legendMax', legendMax)
 
-  // const draw = frame => {
-  //   ctx.clearRect(0, 0, mapWidth, mapHeight);
-  //   frame.counties.forEach(d => {
-  //     const xPos = countyPositions.get(d[0])[0];
-  //     const yPos = countyPositions.get(d[0])[1];
-  //     ctx.beginPath();
-  //     ctx.moveTo(xPos - spikeWidth / 2, yPos);
-  //     ctx.lineTo(xPos + spikeWidth / 2, yPos);
-  //     ctx.lineTo(xPos, yPos - length(d[3]));
-  //     ctx.closePath();
+  const intoThirds = Math.round(legendMax / 3)
+  const maxMinusThird = color(legendMax - intoThirds)
+  const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
+  // console.log(maxMinusTwoThirds)
+  // console.log(maxMinusThird)
+  // console.log(maxColor)
 
-  //     try {
-  //       ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
-  //     } catch {
-  //       console.log(d)
-  //       ctx.fillStyle = 'blue';
-  //     }
+  const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
+  // const legendColor = d3.scaleSequential(interpolator)
+  const legendColor = d3.scaleSequential(interpolator1)
+  // const legendColor = d3.scaleSequential(legendInterpolator)
+    .domain([0, legendMax])
+    .clamp(true)
+    .nice()
 
-  //     ctx.fill();
-  //   });
+  legend({
+    color: color1,
+    title: "Cases / 100,000 People",
+    // width: colorLegendWidth * 2 / 3,
+    width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
+    marginLeft: 15,
+    marginRight: 12,
+    // xVal: colorLegendOffset,
+    xVal: ua.device.type === "Mobile" ? 0 : colorLegendOffset,
+    yVal: headerOffset,
+    tickValues: [0, 100, 200, 300, colorCutoff]
+  })
+
+  legend({
+    color: color2,
+    // width: colorLegendWidth * 1 / 3,
+    width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
+    marginLeft: 12,
+    marginRight: 15,
+    xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
+    yVal: headerOffset,
+    tickValues: [colorCutoff, 2000]
+  })
+
+  // ------------------------------------------------------
+  // // DATA: RANKING
+  
+  const prevKF = new Map(d3.pairs(keyFrames, (a, b) => [b, a]))
+
+  // ------------------------------------------------------
+  // // DRAWING: SPIKES
+
+  const draw = frame => {
+    ctx.clearRect(0, 0, mapWidth, mapHeight);
+    frame.counties.forEach(d => {
+      const xPos = countyPositions.get(d[0])[0];
+      const yPos = countyPositions.get(d[0])[1];
+      ctx.beginPath();
+      ctx.moveTo(xPos - spikeWidth / 2, yPos);
+      ctx.lineTo(xPos + spikeWidth / 2, yPos);
+      ctx.lineTo(xPos, yPos - length(d[3]));
+      ctx.closePath();
+
+      try {
+        ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
+      } catch {
+        // console.log(d)
+        ctx.fillStyle = 'blue';
+      }
+
+      ctx.fill();
+    });
+  }
+
+  // const update = frame => {
+  //   try {
+  //     const prevCounties = prevKF.get(frame).counties;
+  //     const timer = d3.timer(elapsed => {
+  //       const t = Math.min(1, d3.easeLinear(elapsed / duration));
+  //       // const t = Math.min(1, dateProgress);
+  //       frame.counties.forEach((d, i) => {
+  //         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
+  //         d.splice(3, 1, tweenCount);
+  //       });
+  //       draw(frame);
+  //       if (t === 1) timer.stop();
+  //     });
+  //   } catch {
+  //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
+  //   }
   // }
 
-  // // const update = frame => {
-  // //   try {
-  // //     const prevCounties = prevKF.get(frame).counties;
-  // //     const timer = d3.timer(elapsed => {
-  // //       const t = Math.min(1, d3.easeLinear(elapsed / duration));
-  // //       // const t = Math.min(1, dateProgress);
-  // //       frame.counties.forEach((d, i) => {
-  // //         const tweenCount = prevCounties[i][1] * (1 - t) + d[1] * t;
-  // //         d.splice(3, 1, tweenCount);
-  // //       });
-  // //       draw(frame);
-  // //       if (t === 1) timer.stop();
-  // //     });
-  // //   } catch {
-  // //     frame.counties.forEach(d => d.splice(3, 1, d[1]));
-  // //   }
-  // // }
-
-  // // ------------------------------------------------------
-  // // // DRAWING: SPIKE LEGEND
+  // ------------------------------------------------------
+  // // DRAWING: SPIKE LEGEND
   
-  // const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
+  const makeSpike = length => `M${-spikeWidth / 2},0L0,${-length}L${spikeWidth / 2},0`
 
-  // const spikeLegend = mapSvg.append('g')
-  //   .attr('class', 'spikeLegend hidden hideMe')
-  //   .attr('text-anchor', 'middle')
-  //   .attr('font-size', 8)
-  //   .attr('fill', defaultTextColor)
-  //   .attr("font-family", "helvetica")
+  const spikeLegend = mapSvg.append('g')
+    .attr('class', 'spikeLegend hidden hideMe')
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 8)
+    .attr('fill', defaultTextColor)
+    .attr("font-family", "helvetica")
 
-  // const spikeLegendGs = spikeLegend.selectAll('g')
-  //   // .data(length.ticks(4).slice(1).reverse())
-  //   .data([20000, 10000, 5000])
-  //  .join('g')
-  //   .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 20})`)
-  //   // .attr('transform', (d, i) => ua.device.type === 'Mobile'
-  //   //   ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
-  //   //   : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
+  const spikeLegendGs = spikeLegend.selectAll('g')
+    // .data(length.ticks(4).slice(1).reverse())
+    .data([20000, 10000, 5000])
+   .join('g')
+    .attr('transform', (d, i) => `translate(${mapWidth - (i + 1) * 15},${mapHeight - 20})`)
+    // .attr('transform', (d, i) => ua.device.type === 'Mobile'
+    //   ? `translate(${mapWidth + 7 - (i + 1) * 15},${mapHeight - 45})`
+    //   : `translate(${mapWidth - (i + 1) * 15},${mapHeight - 45})`)
 
-  // spikeLegendGs.append('path')
-  //   .style('opacity', opacity)
-  //   .attr('d', d => makeSpike(length(d)))
+  spikeLegendGs.append('path')
+    .style('opacity', opacity)
+    .attr('d', d => makeSpike(length(d)))
 
-  // spikeLegendGs.append('text')
-  //   .attr('dy', '1.1em')
-  //   .text(length.tickFormat(4, "s"))
+  spikeLegendGs.append('text')
+    .attr('dy', '1.1em')
+    .text(length.tickFormat(4, "s"))
 
-  // const spikeLegendDescriptionWidth = spikeLegend.node().getBoundingClientRect().width
+  const spikeLegendDescriptionWidth = spikeLegend.node().getBoundingClientRect().width
 
-  // spikeLegend.append('text')
-  //   .attr('dy', '1.1em')
-  //   .attr('text-anchor', 'end')
-  //   .attr("font-weight", "bold")
-  //   .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 20})`)
-  //   // ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
-  //   // .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${ua.device.type === "Mobile"
-  //   //   ? properHeight - 10
-  //   //   : properHeight - 10})`)
-  //   .text('New Cases')
+  spikeLegend.append('text')
+    .attr('dy', '1.1em')
+    .attr('text-anchor', 'end')
+    .attr("font-weight", "bold")
+    .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${mapHeight - 20})`)
+    // ? macBounds.height - 150 - justMapHeight : macBounds.height - 10 - justMapHeight
+    // .attr('transform', `translate(${mapWidth - spikeLegendDescriptionWidth - 10},${ua.device.type === "Mobile"
+    //   ? properHeight - 10
+    //   : properHeight - 10})`)
+    .text('New Cases')
 
-  // function scrub(keyframe) {
-  //   updateTicker(keyframe);
-  //   updateStateShapes(keyframe)
-  //   updateProgress(keyframe)
-  // }
+  function scrub(keyframe) {
+    updateTicker(keyframe);
+    updateStateShapes(keyframe)
+    updateProgress(keyframe)
+  }
 
-  // const theEnd = performance.now()
+  const theEnd = performance.now()
   // console.log('rest: ', theEnd - postPromiseAll)
+
+  // d3.selectAll('.step').text('test 13')
 
 }
 
