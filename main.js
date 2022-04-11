@@ -2,7 +2,7 @@
 // SETUP
 
 const ua = detect.parse(navigator.userAgent)
-const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 110 : window.innerHeight - 2
+const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 125 : window.innerHeight - 2
 
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
@@ -276,7 +276,7 @@ function ramp(color, n = 256) {
 async function getData() {
 
   const getDataStart = performance.now()
-  console.log('beginning: ', getDataStart - start)
+  // console.log('beginning: ', getDataStart - start)
 
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
   // const storyData = await d3.csv('./data/chapters-Sheet1.csv')
@@ -895,13 +895,6 @@ const updateTicker = ticker(mapSvg)
   // })
 
   const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
-  
-  // const oldStatesList = Array.from(d3.group(rawStates, d => d.state).keys())
-  // const statesList = Array.from(d3.group(rawStates, d => d.state).keys())
-  
-  console.log('fipsLookup', fipsLookup)
-  console.log('obj.keys', Object.keys(fipsLookup))
-  
   const statesList = Object.keys(fipsLookup)
 
   const countyPositions = new Map(
@@ -909,8 +902,6 @@ const updateTicker = ticker(mapSvg)
     .map(([id, [d]]) => [id, position(d)])
     .filter(([, position]) => position)
   )
-
-  console.log('statesList', statesList)
 
   // const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
@@ -920,8 +911,6 @@ const updateTicker = ticker(mapSvg)
   //   .forEach(d => {
   //     fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
   //   })
-
-  console.log('fipsLookup', fipsLookup)
 
   // ------------------------------------------------------
   // // POPULATION DATA
@@ -971,9 +960,7 @@ const updateTicker = ticker(mapSvg)
   // ------------------------------------------------------
   // // FRAMES DATA
 
-  // const statesByPlace = d3.rollup(rawStates, v => processData(v), d => d.state)
   const statesByPlace = new Map(
-  // const sbp = new Map(
     statesNested.map((d) => {
       const map = new Map();
       d[1].forEach((state) => {
@@ -985,8 +972,6 @@ const updateTicker = ticker(mapSvg)
 
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
 
-  console.log('statesByPlace', statesByPlace)
-
   let statesMap = new Map(
     statesList.map(state => [
       state,
@@ -995,15 +980,6 @@ const updateTicker = ticker(mapSvg)
   )
 
   frames.forEach(d => {
-
-    // d.statesCasesStarted = new Map(
-    //   statesList.map((state) => {
-    //     const obj = statesByPlace.get(state).get(d.date);
-    //     if (obj) if (obj.newCases > 0) statesMap.set(state, 1);
-    //     return [state, statesMap.get(state)];
-    //   })
-    // );
-    
     d.statesCasesStarted = new Map(
       statesList.map((state) => {
         let val
@@ -1016,20 +992,6 @@ const updateTicker = ticker(mapSvg)
         return [state, statesMap.get(state)];
       })
     );
-
-    // d.statesCasesStarted = new Map(
-    //   statesList.map((state) => {
-    //     try {
-    //       const val = sbp.get(state).get(d.date);
-    //       console.log(val);
-    //       if (val > 0) statesMap.set(state, 1);
-    //       return [state, statesMap.get(state)];
-    //     } catch {
-    //       console.log("err", state);
-    //     }
-    //   })
-    // );
-  
     d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
       county,
       countiesByPlace.get(county).get(d.date)
@@ -1044,8 +1006,8 @@ const updateTicker = ticker(mapSvg)
   console.log('frames2', frames[0])
 
   // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
-  const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
-  console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
+  // const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
+  // console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
   
   // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
   // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
