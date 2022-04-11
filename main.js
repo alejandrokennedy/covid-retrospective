@@ -2,7 +2,7 @@
 // SETUP
 
 const ua = detect.parse(navigator.userAgent)
-const phReduction = 155
+const phReduction = 165
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phReduction : window.innerHeight - 2
 console.log('properHeight reduction', phReduction)
 
