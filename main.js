@@ -2,7 +2,7 @@
 // SETUP
 
 const ua = detect.parse(navigator.userAgent)
-const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 125 : window.innerHeight - 2
+const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 145 : window.innerHeight - 2
 
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
