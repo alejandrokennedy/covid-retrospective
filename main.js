@@ -284,7 +284,7 @@ async function getData() {
   // console.log(storyData)
 
   const storyFetchEnd = performance.now()
-  console.log('storyFetchEnd: ', storyFetchEnd - getDataStart)
+  // console.log('storyFetchEnd: ', storyFetchEnd - getDataStart)
   
   const chapters = storyData.map((d, i) => {
     return {
@@ -423,7 +423,7 @@ async function getData() {
 // // COVID DATA
 
   const prePromiseAll = performance.now()
-  console.log('before fetches: ', prePromiseAll - storyFetchEnd)
+  // console.log('before fetches: ', prePromiseAll - storyFetchEnd)
 
     // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
@@ -899,8 +899,11 @@ const updateTicker = ticker(mapSvg)
   // const oldStatesList = Array.from(d3.group(rawStates, d => d.state).keys())
   // const statesList = Array.from(d3.group(rawStates, d => d.state).keys())
   
-  const statesList = Array.from(Object.keys(fipsLookup))
+  console.log('fipsLookup', fipsLookup)
+  console.log('obj.keys', Object.keys(fipsLookup))
   
+  const statesList = Object.keys(fipsLookup)
+
   const countyPositions = new Map(
     d3.groups(rawCounties, id)
     .map(([id, [d]]) => [id, position(d)])
