@@ -2,8 +2,9 @@
 // SETUP
 
 const ua = detect.parse(navigator.userAgent)
-const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - 155 : window.innerHeight - 2
-console.log('properHeight reduction', 155)
+const phReduction = 155
+const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phReduction : window.innerHeight - 2
+console.log('properHeight reduction', phReduction)
 
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
@@ -687,7 +688,7 @@ const colorCutoff = 400
     .style('font-family', 'helvetica')
     .style('font-size', 10)
     .style('fill', defaultTextColor)
-    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
+    .text(`${phReduction} Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
 
   explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
   
