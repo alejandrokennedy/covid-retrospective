@@ -105,7 +105,8 @@ h4 {
   font-weight: 400;
   font-size: 26px;
   line-height: normal;
-  text-align: center;
+  /* text-align: center; */
+  text-align: left;
   margin-bottom: 25px
 }
 

@@ -430,7 +430,7 @@ async function getData() {
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
   
-  const all = await d3.json('./data/all1.json'),
+  const all = await d3.json('./data/all.json'),
     us = all.us,
     maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj,
     // rawCounties = all.rawCounties,
