@@ -6,6 +6,7 @@ const ua = detect.parse(navigator.userAgent)
 const phReduction = 165
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phReduction : window.innerHeight - 2
 console.log('properHeight reduction', phReduction)
+console.log('device type', ua.device.type)
 
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
@@ -391,9 +392,10 @@ async function getData() {
             .style('opacity', 0.99)
 				}
 
-        d3.selectAll('.step').selectAll('div')
+        const steppy = d3.selectAll('.step').selectAll('div')
         .attr('class', 'storyDiv')
         .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
+        .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
 
 				chapter.classList.add(config.theme);
 				container.appendChild(chapter);
@@ -567,6 +569,10 @@ async function getData() {
     .text(d => d.date)
 
   const stepSelection = d3.selectAll('.step')
+
+  stepSelection.selectAll('div')
+    .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
+    .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
   stepSelection
     .data(chapters)
