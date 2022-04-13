@@ -1,3 +1,4 @@
+const start = performance.now()
 //---------------------------------------------------------
 // SETUP
 
@@ -15,8 +16,6 @@ const vizContainer = d3.select('#viz-container')
 
 // ------------------------------------------------------
 // // MISCELLANEOUS VARIABLES SETUP
-
-const start = performance.now()
 
 const opacity = 0.7
 const avgNum = 14
@@ -425,23 +424,26 @@ async function getData() {
 // // COVID DATA
 
   const prePromiseAll = performance.now()
-  // console.log('before fetches: ', prePromiseAll - storyFetchEnd)
-
+  console.log('before fetch: ', prePromiseAll - start)
+  
     // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
     // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
     // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
-
-  const all = await d3.json('./data/all.json'),
+  
+  const all = await d3.json('./data/all1.json'),
     us = all.us,
     maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj,
+    // rawCounties = all.rawCounties,
     jhu = all.jhu,
     rawUsCases = all.rawUsCases,
     countyPopUglyFips = all.countyPopUglyFips,
+    countyPop = all.countyPop,
     fipsLookup = all.fipsLookup,
     statesNested = all.statesNested
-      // rawStatesUnfiltered, // FILTER STATES?
-
+    // rawStatesUnfiltered, // FILTER STATES?
+    
   const jhuMiddle = performance.now()
+  console.log('after fetch: ', jhuMiddle - prePromiseAll)
 
   const rawCountiesUnfiltered = [];
   await jhu.forEach((d) => {
@@ -459,6 +461,7 @@ async function getData() {
   });
 
   const jhuEnd = performance.now()
+  console.log('rawCountiesUnfiltered: ', jhuEnd - jhuMiddle)
 
 //---------------------------------------------------------
 // // GEO DATA
@@ -688,7 +691,7 @@ const colorCutoff = 400
     .style('font-family', 'helvetica')
     .style('font-size', 10)
     .style('fill', defaultTextColor)
-    .text(`${phReduction} Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
+    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
 
   explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
   
@@ -896,14 +899,21 @@ const updateTicker = ticker(mapSvg)
   //   return !excludedStates.includes(d.fips)
   // })
 
+  const preCountyTransformations = performance.now()
+  console.log('preCountyTransformations', preCountyTransformations - jhuEnd)
+  
   const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
   const statesList = Object.keys(fipsLookup)
-
+  
   const countyPositions = new Map(
     d3.groups(rawCounties, id)
     .map(([id, [d]]) => [id, position(d)])
     .filter(([, position]) => position)
-  )
+    )
+    
+  const postCountyPositions = performance.now()
+  console.log('countyTransformations', postCountyPositions - preCountyTransformations)
+  console.log('countyPositions', countyPositions)
 
   // const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
 
@@ -944,20 +954,24 @@ const updateTicker = ticker(mapSvg)
     }
   ]
 
-  const nycAreaCodes = ["36061", "36047", "36081", "36005", "36085"]
+  // const nycAreaCodes = ["36061", "36047", "36081", "36005", "36085"]
 
-  const countyPop = countyPopUglyFips.map(d => {
-    d.STATE = d3.format("02")(d.STATE);
-    d.COUNTY = d3.format("03")(d.COUNTY);
-    d.FIPS = d.STATE.concat(d.COUNTY);
-    return d;
-  })
-  .filter(d => d.COUNTY != '000' && !nycAreaCodes.includes(d.FIPS))
-  .concat(cityCounties)
+  // const countyPop = countyPopUglyFips.map(d => {
+  //   d.STATE = d3.format("02")(d.STATE);
+  //   d.COUNTY = d3.format("03")(d.COUNTY);
+  //   d.FIPS = d.STATE.concat(d.COUNTY);
+  //   return d;
+  // })
+  // // .filter(d => d.COUNTY != '000' && !nycAreaCodes.includes(d.FIPS))
+  // .filter(d => d.COUNTY != '000')
+  // .concat(cityCounties)
 
-  const popId = d => d.FIPS || `${d.CTYNAME}, ${d.STNAME}`
+  // const popId = d => d.FIPS || `${d.CTYNAME}, ${d.STNAME}`
 
-  const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
+  // const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
+  const countiesPop = new Map(countyPop)
+  console.log('countyPop', countyPop)
+  console.log('countiesPop', countiesPop)
 
   // ------------------------------------------------------
   // // FRAMES DATA
@@ -972,7 +986,12 @@ const updateTicker = ticker(mapSvg)
     })
   )
 
+  const preCountiesByPlace = performance.now()
   const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
+  const postCountiesByPlace = performance.now()
+  console.log('countiesByPlace', postCountiesByPlace - preCountiesByPlace)
+
+  console.log('countiesByPlace', countiesByPlace)
 
   let statesMap = new Map(
     statesList.map(state => [
@@ -980,6 +999,8 @@ const updateTicker = ticker(mapSvg)
       0
     ])
   )
+
+  const beforeFramesForEach = performance.now()
 
   frames.forEach(d => {
     d.statesCasesStarted = new Map(
@@ -1005,7 +1026,11 @@ const updateTicker = ticker(mapSvg)
     ])
   })
 
-  console.log('frames2', frames[0])
+  const afterFramesForEach = performance.now()
+  console.log('framesForeach', afterFramesForEach - beforeFramesForEach)
+  
+  // console.log('frames2', frames[0])
+  console.log('frames2', frames)
 
   // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
   // const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
@@ -1147,7 +1172,7 @@ const updateTicker = ticker(mapSvg)
       try {
         ctx.fillStyle = color(d[2]).split(')')[0] + `, ${opacity})`
       } catch {
-        // console.log(d)
+        console.log(d)
         ctx.fillStyle = 'blue';
       }
 
