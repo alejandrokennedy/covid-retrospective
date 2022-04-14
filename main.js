@@ -1134,9 +1134,7 @@ const updateTicker = ticker(mapSvg)
 
   const theEnd = performance.now()
   console.log('rest: ', theEnd - postFramesForEach)
-
-  // d3.selectAll('.step').text('test 13')
-
+  console.log('everything: ', theEnd - start)
 }
 
 getData()
