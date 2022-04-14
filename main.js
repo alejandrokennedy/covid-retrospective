@@ -6,7 +6,7 @@ const ua = detect.parse(navigator.userAgent)
 const phReduction = 165
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phReduction : window.innerHeight - 2
 console.log('properHeight reduction', phReduction)
-console.log('device type', ua.device.type)
+console.log('device type:', ua.device.type)
 
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
@@ -277,16 +277,16 @@ function ramp(color, n = 256) {
 
 async function getData() {
 
-  const getDataStart = performance.now()
-  // console.log('beginning: ', getDataStart - start)
+  const preStoryData = performance.now()
+  console.log('beginning: ', preStoryData - start)
 
   const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
   // const storyData = await d3.csv('./data/chapters-Sheet1.csv')
 
   // console.log(storyData)
 
-  const storyFetchEnd = performance.now()
-  // console.log('storyFetchEnd: ', storyFetchEnd - getDataStart)
+  const postStoryData = performance.now()
+  console.log('storyFetch: ', postStoryData - preStoryData)
   
   const chapters = storyData.map((d, i) => {
     return {
@@ -413,7 +413,8 @@ async function getData() {
 			if (config.footer) {
 				const footerText = document.createElement('p');
 				footerText.innerHTML = config.footer;
-				footer.appendChild(footerText).setAttribute('style', 'padding-right: 40px; padding-left: 40px; padding-top: 500px;');
+				footer.appendChild(footerText)
+          .setAttribute('style', 'padding-right: 40px; padding-left: 40px; padding-top: 40px; padding-bottom: 40px; margin-top: 500px; margin-bottom: 0px; background: rgba(23, 23, 23, 0.65)')
 			}
 
 			if (footer.innerText.length > 0) {
@@ -425,45 +426,20 @@ async function getData() {
 //---------------------------------------------------------
 // // COVID DATA
 
-  const prePromiseAll = performance.now()
-  console.log('before fetch: ', prePromiseAll - start)
-  
-    // ruc = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv'),
-    // rsuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv'),
-    // rcuf = getCsv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+  const preFetch = performance.now()
+  console.log('before fetch: ', preFetch - postStoryData)
   
   const all = await d3.json('./data/all.json'),
     us = all.us,
     maxDailyCasesCountiesObj = all.maxDailyCasesCountiesObj,
-    // rawCounties = all.rawCounties,
-    jhu = all.jhu,
+    frames = all.jhuFrames,
     rawUsCases = all.rawUsCases,
-    countyPopUglyFips = all.countyPopUglyFips,
     countyPop = all.countyPop,
-    fipsLookup = all.fipsLookup,
-    statesNested = all.statesNested
-    // rawStatesUnfiltered, // FILTER STATES?
+    fipsLookup = all.fipsLookup
+    // statesNested = all.statesNested
     
-  const jhuMiddle = performance.now()
-  console.log('after fetch: ', jhuMiddle - prePromiseAll)
-
-  const rawCountiesUnfiltered = [];
-  await jhu.forEach((d) => {
-    for (const property in d) {
-      const dateObj = d3.timeParse("%m/%d/%y")(property);
-      if (dateObj)
-        rawCountiesUnfiltered.push({
-          fips: d.fips,
-          date: d3.timeFormat("%Y-%m-%d")(dateObj),
-          state: d.Province_State,
-          county: d.Admin2,
-          cases: d[property]
-        });
-    }
-  });
-
-  const jhuEnd = performance.now()
-  console.log('rawCountiesUnfiltered: ', jhuEnd - jhuMiddle)
+  const postFetch = performance.now()
+  console.log('after fetch: ', postFetch - preFetch)
 
 //---------------------------------------------------------
 // // GEO DATA
@@ -549,9 +525,6 @@ async function getData() {
       const introBounds = d3.select('.intro').node().getBoundingClientRect()
       return `${openingTitleBounds.height + introBounds.height}px`
     })
-
-  const frames = dates.map(d => ({date: d}))
-  console.log('frames1', frames[0])
 
   const keyFrames = frames
 
@@ -748,8 +721,8 @@ const colorCutoff = 400
         d3.selectAll('.hideMe').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
         
-        if (keyframe.statesCasesStarted)
-        keyframe.statesCasesStarted.forEach((val, key) => {
+        if (keyframe.altStatesCasesStarted)
+        keyframe.altStatesCasesStarted.forEach((val, key) => {
           if (val) {
             d3.select(`.f${fipsLookup[key]}.hidden`)
               .classed('hidden', false)
@@ -793,6 +766,7 @@ const updateTicker = ticker(mapSvg)
       });
       draw(frame);
     } catch {
+      console.log('updateSpikes catch!')
       if (frame.counties)
       frame.counties.forEach(d => d.splice(3, 1, d[1]));
     }
@@ -884,81 +858,62 @@ const updateTicker = ticker(mapSvg)
 
   const id = d => d.fips || `${d.county}, ${d.state}`
 
-  function position({ fips, state, county }) {
-    if (!fips)
-      switch (`${county}, ${state}`) {
-        case 'New York City, New York':
-          return projection([-74.0060, 40.7128]);
-        case 'Kansas City, Missouri':
-          return projection([-94.5786, 39.0997]);
-        case 'Joplin, Missouri':
-          return projection([-94.5133, 37.0842]);
-      }
+//////////////////////////////////////////
+// // // COVID DATA TRANSFORMATIONS
+
+  const preCountyTransformations = performance.now();
+  console.log("preCountyTransformations", preCountyTransformations - postFetch);
+
+  const statesList = Object.keys(fipsLookup);
+
+  const countyPositionsTest = frames[0].counties.map((d) => d[0]);
+
+  function newPosition(fips) {
+    if (!fips) console.log("!fips");
     const feature = features.get(fips);
-    return feature && path.centroid(feature);
+    return path.centroid(feature);
   }
 
-  // // // COVID DATA TRANSFORMATIONS
-
-  // const rawStates = rawStatesUnfiltered.filter(d => {
-  //   if (d.state === 'District of Columbia') d.state = 'D.C.'
-  //   return !excludedStates.includes(d.fips)
-  // })
-
-  const preCountyTransformations = performance.now()
-  console.log('preCountyTransformations', preCountyTransformations - jhuEnd)
-  
-  const rawCounties = rawCountiesUnfiltered.filter(d => !excludedStates.includes(d.fips.slice(0, 2)))
-  const statesList = Object.keys(fipsLookup)
-  
   const countyPositions = new Map(
-    d3.groups(rawCounties, id)
-    .map(([id, [d]]) => [id, position(d)])
-    .filter(([, position]) => position)
-    )
+    countyPositionsTest.map((d) => [d, newPosition(d)])
+  );
     
   const postCountyPositions = performance.now()
+
+  const countiesPop = new Map(countyPop)
+
   console.log('countyTransformations', postCountyPositions - preCountyTransformations)
-  console.log('countyPositions', countyPositions)
-
-  // const removeFirstZero = str => str[0] === '0' ? str.substring(1, 2) : str
-
-  // const fipsLookup = {}
-  // d3.groups(rawStates, d => d.state, d => d.fips)
-  //   .map(x => { return {[x[0]]: x[1][0][0]} })
-  //   .forEach(d => {
-  //     fipsLookup[Object.keys(d)[0]] = removeFirstZero(Object.values(d)[0])
-  //   })
+  // console.log('countyPositions', countyPositions)
 
   // ------------------------------------------------------
   // // POPULATION DATA
 
-  const cityCounties = [
-    {
-      STATE: "36",
-      COUNTY: null,
-      STNAME: "New York",
-      CTYNAME: "New York City",
-      POPESTIMATE2019: "8336817",
-      FIPS: null
-    },
-    {
-      STATE: "29",
-      COUNTY: null,
-      STNAME: "Missouri",
-      CTYNAME: "Kansas City",
-      POPESTIMATE2019: "459787",
-      FIPS: null
-    },
-    {
-      STATE: "29",
-      COUNTY: null,
-      STNAME: "Missouri",
-      CTYNAME: "Joplin",
-      POPESTIMATE2019: "50150",
-      FIPS: null
-    }
-  ]
+  // const cityCounties = [
+  //   {
+  //     STATE: "36",
+  //     COUNTY: null,
+  //     STNAME: "New York",
+  //     CTYNAME: "New York City",
+  //     POPESTIMATE2019: "8336817",
+  //     FIPS: null
+  //   },
+  //   {
+  //     STATE: "29",
+  //     COUNTY: null,
+  //     STNAME: "Missouri",
+  //     CTYNAME: "Kansas City",
+  //     POPESTIMATE2019: "459787",
+  //     FIPS: null
+  //   },
+  //   {
+  //     STATE: "29",
+  //     COUNTY: null,
+  //     STNAME: "Missouri",
+  //     CTYNAME: "Joplin",
+  //     POPESTIMATE2019: "50150",
+  //     FIPS: null
+  //   }
+  // ]
 
   // const nycAreaCodes = ["36061", "36047", "36081", "36005", "36085"]
 
@@ -975,101 +930,16 @@ const updateTicker = ticker(mapSvg)
   // const popId = d => d.FIPS || `${d.CTYNAME}, ${d.STNAME}`
 
   // const countiesPop = new Map(countyPop.map(d => [popId(d), +d.POPESTIMATE2019]))
-  const countiesPop = new Map(countyPop)
-  console.log('countyPop', countyPop)
-  console.log('countiesPop', countiesPop)
+  // console.log('countyPop', countyPop)
+  // console.log('countiesPop', countiesPop)
 
   // ------------------------------------------------------
   // // FRAMES DATA
 
-  const statesByPlace = new Map(
-    statesNested.map((d) => {
-      const map = new Map();
-      d[1].forEach((state) => {
-        map.set(state[0], state[1]);
-      });
-      return [d[0], map];
-    })
-  )
-
-  const preCountiesByPlace = performance.now()
-  const countiesByPlace = d3.rollup(rawCounties, v => processData(v), d => id(d))
-  const postCountiesByPlace = performance.now()
-  console.log('countiesByPlace', postCountiesByPlace - preCountiesByPlace)
-
-  console.log('countiesByPlace', countiesByPlace)
-
-  let statesMap = new Map(
-    statesList.map(state => [
-      state,
-      0
-    ])
-  )
-
-  const beforeFramesForEach = performance.now()
-
-  frames.forEach(d => {
-    d.statesCasesStarted = new Map(
-      statesList.map((state) => {
-        let val
-        try {
-          val = statesByPlace.get(state).get(d.date);
-        } catch {
-          'catch'
-        }
-        if (val) if (val > 0) statesMap.set(state, 1);
-        return [state, statesMap.get(state)];
-      })
-    );
-    d.counties = Array.from(countyPositions, ([key, value]) => key).map(county => [
-      county,
-      countiesByPlace.get(county).get(d.date)
-        ? countiesByPlace.get(county).get(d.date)['smaRound']
-        : 0,
-      countiesByPlace.get(county).get(d.date)
-        ? countiesByPlace.get(county).get(d.date)['perHundThou']
-        : 0
-    ])
-  })
-
-  const afterFramesForEach = performance.now()
-  console.log('framesForeach', afterFramesForEach - beforeFramesForEach)
-  
-  // console.log('frames2', frames[0])
-  console.log('frames2', frames)
-
-  // TO REFRESH maxDailyCasesCountiesObj UNCOMMENT CODE BELOW AND SAVE CONSOLE LOG
-  // const maxDailyCasesCountiesObjSave = getMaxDailyCasesCounties()
-  // console.log('maxDailyCasesCountiesObjSave', maxDailyCasesCountiesObjSave)
-  
-  // const maxDailyCasesCounties = maxDailyCasesCountiesObj.max
-  // const maxPerHundThouCounties = maxDailyCasesCountiesObj.perCapita
-
-  function getMaxDailyCasesCounties() {
-    let max = 0
-    let theDate
-    let perCapita = 0
-    let perCapitaDate
-    const obj = {}
-    for (let date of frames) {
-      const maxOfDay = d3.max(date.counties.map(d => d[1]));
-      if (maxOfDay > max) {
-        max = maxOfDay
-        theDate = date.date
-      }
-
-      const maxPerCapitaOfDay = d3.max(date.counties.map(d => d[2]));
-      if (maxPerCapitaOfDay > perCapita) {
-        perCapita = maxPerCapitaOfDay
-        perCapitaDate = date.date
-      }
-    }
-    obj.max = max
-    obj.maxDate = theDate
-    obj.perCapita = perCapita
-    obj.perCapitaDate = perCapitaDate
-    return obj
-  }
+  const preFramesForEach = performance.now()
+  frames.forEach(d => d.altStatesCasesStarted = new Map(d.statesCasesStarted))
+  const postFramesForEach = performance.now()
+  console.log('frames.forEach', postFramesForEach - preFramesForEach)
 
   const length = d3.scaleLinear()
     .domain([0, maxDailyCasesCounties])
@@ -1082,55 +952,56 @@ const updateTicker = ticker(mapSvg)
   //   .clamp(true)
   //   .nice()
 
-  const lengthOfInterest = length.invert(spikeWidth / 2)
+  // const lengthOfInterest = length.invert(spikeWidth / 2)
   
-  function findLegendMax() {
-    let i = 550
-    let arr = testMaxes(i)
-    if (arr.length === 0) {
-      while (arr.length === 0) {
-        i -= 10
-        arr = testMaxes(i)
-      }
-      return i
-    }
-    while (arr.length > 0) {
-      i += 10
-      arr = testMaxes(i)
-    }
-    return i
-  }
-  function testMaxes(num) {
-    let arr = []
-    for (let date of frames) {
-      date.counties.forEach(d => {
-        if (d[2] > num && d[1] > lengthOfInterest) {
-          return arr.push(d)
-        }
-      })
-    }
-    return arr;
-  }
+  // function findLegendMax() {
+  //   let i = 550
+  //   let arr = testMaxes(i)
+  //   if (arr.length === 0) {
+  //     while (arr.length === 0) {
+  //       i -= 10
+  //       arr = testMaxes(i)
+  //     }
+  //     return i
+  //   }
+  //   while (arr.length > 0) {
+  //     i += 10
+  //     arr = testMaxes(i)
+  //   }
+  //   return i
+  // }
+
+  // function testMaxes(num) {
+  //   let arr = []
+  //   for (let date of frames) {
+  //     date.counties.forEach(d => {
+  //       if (d[2] > num && d[1] > lengthOfInterest) {
+  //         return arr.push(d)
+  //       }
+  //     })
+  //   }
+  //   return arr;
+  // }
 
   // const legendMax = findLegendMax()
-  const legendMax = 1000
-  const maxColor = color(legendMax)
+  // const legendMax = 1000
+  // const maxColor = color(legendMax)
   // console.log('legendMax', legendMax)
 
-  const intoThirds = Math.round(legendMax / 3)
-  const maxMinusThird = color(legendMax - intoThirds)
-  const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
+  // const intoThirds = Math.round(legendMax / 3)
+  // const maxMinusThird = color(legendMax - intoThirds)
+  // const maxMinusTwoThirds = color(legendMax - intoThirds * 2)
   // console.log(maxMinusTwoThirds)
   // console.log(maxMinusThird)
   // console.log(maxColor)
 
-  const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
+  // const legendInterpolator = d3.piecewise(d3.interpolateHsl, ['#0400ff', maxMinusTwoThirds, maxMinusThird, maxColor])
   // const legendColor = d3.scaleSequential(interpolator)
-  const legendColor = d3.scaleSequential(interpolator1)
+  // const legendColor = d3.scaleSequential(interpolator1)
   // const legendColor = d3.scaleSequential(legendInterpolator)
-    .domain([0, legendMax])
-    .clamp(true)
-    .nice()
+    // .domain([0, legendMax])
+    // .clamp(true)
+    // .nice()
 
   legend({
     color: color1,
@@ -1167,8 +1038,17 @@ const updateTicker = ticker(mapSvg)
   const draw = frame => {
     ctx.clearRect(0, 0, mapWidth, mapHeight);
     frame.counties.forEach(d => {
-      const xPos = countyPositions.get(d[0])[0];
-      const yPos = countyPositions.get(d[0])[1];
+      let xPos
+      let yPos
+      // console.log(countyPositions.get(d[0]))
+      try {
+        xPos = countyPositions.get(d[0])[0];
+        yPos = countyPositions.get(d[0])[1];
+      } catch {
+        xPos = 225.2469878205622
+        yPos = 501.8743754426928
+        console.log(d[0])
+      }
       ctx.beginPath();
       ctx.moveTo(xPos - spikeWidth / 2, yPos);
       ctx.lineTo(xPos + spikeWidth / 2, yPos);
@@ -1253,7 +1133,7 @@ const updateTicker = ticker(mapSvg)
   }
 
   const theEnd = performance.now()
-  // console.log('rest: ', theEnd - postPromiseAll)
+  console.log('rest: ', theEnd - postFramesForEach)
 
   // d3.selectAll('.step').text('test 13')
 
