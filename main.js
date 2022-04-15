@@ -278,15 +278,17 @@ function ramp(color, n = 256) {
 async function getData() {
 
   const preStoryData = performance.now()
-  console.log('beginning: ', preStoryData - start)
+  // console.log('beginning: ', preStoryData - start)
 
-  const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  // const storyData = await d3.csv('./data/chapters-Sheet1.csv')
+  // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  const storyData = await d3.csv('./data/story.csv')
+  // const storyData = await d3.csv('./data/story.json')
+  // const storyData = await d3.csv('./data/chapters.csv')
 
-  // console.log(storyData)
+  console.log('storyData', storyData)
 
   const postStoryData = performance.now()
-  console.log('storyFetch: ', postStoryData - preStoryData)
+  // console.log('storyFetch: ', postStoryData - preStoryData)
   
   const chapters = storyData.map((d, i) => {
     return {
@@ -427,7 +429,7 @@ async function getData() {
 // // COVID DATA
 
   const preFetch = performance.now()
-  console.log('before fetch: ', preFetch - postStoryData)
+  // console.log('before fetch: ', preFetch - postStoryData)
   
   const all = await d3.json('./data/all.json'),
     us = all.us,
@@ -439,7 +441,9 @@ async function getData() {
     // statesNested = all.statesNested
     
   const postFetch = performance.now()
-  console.log('after fetch: ', postFetch - preFetch)
+  // console.log('after fetch: ', postFetch - preFetch)
+
+  console.log('frames', frames)
 
 //---------------------------------------------------------
 // // GEO DATA
@@ -721,8 +725,8 @@ const colorCutoff = 400
         d3.selectAll('.hideMe').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
         
-        if (keyframe.altStatesCasesStarted)
-        keyframe.altStatesCasesStarted.forEach((val, key) => {
+        if (keyframe.statesStarted)
+        keyframe.statesStarted.forEach((val, key) => {
           if (val) {
             d3.select(`.f${fipsLookup[key]}.hidden`)
               .classed('hidden', false)
@@ -862,7 +866,7 @@ const updateTicker = ticker(mapSvg)
 // // // COVID DATA TRANSFORMATIONS
 
   const preCountyTransformations = performance.now();
-  console.log("preCountyTransformations", preCountyTransformations - postFetch);
+  // console.log("preCountyTransformations", preCountyTransformations - postFetch);
 
   const statesList = Object.keys(fipsLookup);
 
@@ -882,7 +886,7 @@ const updateTicker = ticker(mapSvg)
 
   const countiesPop = new Map(countyPop)
 
-  console.log('countyTransformations', postCountyPositions - preCountyTransformations)
+  // console.log('countyTransformations', postCountyPositions - preCountyTransformations)
   // console.log('countyPositions', countyPositions)
 
   // ------------------------------------------------------
@@ -937,9 +941,9 @@ const updateTicker = ticker(mapSvg)
   // // FRAMES DATA
 
   const preFramesForEach = performance.now()
-  frames.forEach(d => d.altStatesCasesStarted = new Map(d.statesCasesStarted))
+  frames.forEach(d => d.statesStarted = new Map(d.statesStarted))
   const postFramesForEach = performance.now()
-  console.log('frames.forEach', postFramesForEach - preFramesForEach)
+  // console.log('frames.forEach', postFramesForEach - preFramesForEach)
 
   const length = d3.scaleLinear()
     .domain([0, maxDailyCasesCounties])
@@ -1133,8 +1137,20 @@ const updateTicker = ticker(mapSvg)
   }
 
   const theEnd = performance.now()
-  console.log('rest: ', theEnd - postFramesForEach)
-  console.log('everything: ', theEnd - start)
+  // console.log('rest: ', theEnd - postFramesForEach)
+  // console.log('everything: ', theEnd - start)
+  
+  console.table({
+    beginning: preStoryData - start,
+    storyFetch: postStoryData - preStoryData,
+    beforeFetch: preFetch - postStoryData,
+    dataFetch: postFetch - preFetch,
+    preCountyTransformations: preCountyTransformations - postFetch,
+    countyTransformations: postCountyPositions - preCountyTransformations,
+    framesForEach: postFramesForEach - preFramesForEach,
+    rest: theEnd - postFramesForEach,
+    everythong: theEnd - start,
+  })
 }
 
 getData()
