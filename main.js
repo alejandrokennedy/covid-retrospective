@@ -447,9 +447,24 @@ async function getData() {
 //---------------------------------------------------------
 // // GEO DATA
 
+  const usLand = topojson.feature(us, us.objects.land)
   const usStates = topojson.feature(us, us.objects.states)
   const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
   const path = d3.geoPath().projection(projection)
+
+  console.log('usStates', usStates)
+  console.log('usStates.features[0]', usStates.features[0])
+  console.log('usLand', usLand)
+
+  mapSvg.append('g')
+    .attr('class', 'us-land-g')
+    .selectAll('.us-land')
+   .data([usLand])
+    .enter().append('path')
+    .attr('stroke', '#4d4d4d')
+    .attr('fill', '#171717')
+    .attr('class', `us-land hidden`)
+    .attr('d', path)
 
   mapSvg.append('g')
     .attr('class', 'states')
@@ -723,6 +738,7 @@ const colorCutoff = 400
         d3.select('.colorLegend').classed('hidden', false)
         d3.selectAll('.hideMe').classed('hidden', false)
         d3.select('.progress').classed('hidden', false)
+        d3.select('.us-land').classed('hidden', false)
         
         if (keyframe.statesStarted)
         keyframe.statesStarted.forEach((val, key) => {
@@ -749,6 +765,7 @@ const colorCutoff = 400
         d3.selectAll('.colorLegend').classed('hidden', true)
         d3.selectAll('.hideMe').classed('hidden', true)
         d3.select('.progress').classed('hidden', true)
+        d3.select('.us-land').classed('hidden', true)
       }
     }
   }
@@ -846,6 +863,7 @@ const updateTicker = ticker(mapSvg)
         d3.select('.colorLegend').classed('hidden', true)
         d3.selectAll('.hideMe').classed('hidden', true)
         d3.select('.progress').classed('hidden', true)
+        d3.select('.us-land').classed('hidden', true)
         d3.select('.tickerText').text('')
       }
     },
@@ -1148,7 +1166,7 @@ const updateTicker = ticker(mapSvg)
     countyTransformations: postCountyPositions - preCountyTransformations,
     framesForEach: postFramesForEach - preFramesForEach,
     rest: theEnd - postFramesForEach,
-    everythong: theEnd - start,
+    everything: theEnd - start,
   })
 }
 
