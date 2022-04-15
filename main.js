@@ -562,7 +562,10 @@ async function getData() {
 
   stepSelection.selectAll('div')
     .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
-    .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
+    // .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
+
+  // stepSelection.select('div')
+    // .style('padding', ua.device.type === "Mobile" ? '25px 35px 25px 0px' : '25px 35px')
 
   stepSelection
     .data(chapters)
