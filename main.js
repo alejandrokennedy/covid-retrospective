@@ -59,6 +59,10 @@ const macBounds = d3.select('#mapAndControls').node().getBoundingClientRect()
 let mapWidth = macBounds.width
 let mapHeight = macBounds.height
 
+const colorLegendWidth = d3.min([mapWidth / 4, 320])
+const color1LegendWidth = ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3
+const color2LegendWidth = ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3
+
 const justMapHeight = mapWidth / 1.7
 // const justMapHeight = mapWidth / 1.9
 // const mapMarginTop = macBounds.height - 50 - justMapHeight
@@ -120,7 +124,6 @@ const mapSvg = mapContainer.append('svg').attr('class', 'mapSvg')
 // ------------------------------------------------------
 // // COLOR LEGEND SETUP
 
-const colorLegendWidth = d3.min([mapWidth / 4, 320])
 const colorLegendOffset = mapWidth - marginOffset - colorLegendWidth
 
 function legend({
@@ -451,10 +454,6 @@ async function getData() {
   const usStates = topojson.feature(us, us.objects.states)
   const projection = d3.geoAlbersUsa().fitExtent([[0, mapMargin.top], [mapWidth - mapMargin.right, mapHeight]], usStates)
   const path = d3.geoPath().projection(projection)
-
-  console.log('usStates', usStates)
-  console.log('usStates.features[0]', usStates.features[0])
-  console.log('usLand', usLand)
 
   mapSvg.append('g')
     .attr('class', 'us-land-g')
@@ -1027,8 +1026,8 @@ const updateTicker = ticker(mapSvg)
   legend({
     color: color1,
     title: "Cases / 100,000 People",
-    // width: colorLegendWidth * 2 / 3,
-    width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
+    width: color1LegendWidth,
+    // width: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendWidth * 2 / 3,
     marginLeft: 15,
     marginRight: 12,
     // xVal: colorLegendOffset,
@@ -1039,8 +1038,8 @@ const updateTicker = ticker(mapSvg)
 
   legend({
     color: color2,
-    // width: colorLegendWidth * 1 / 3,
-    width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
+    width: color2LegendWidth,
+    // width: ua.device.type === "Mobile" ? mapWidth * 1 / 3 : colorLegendWidth * 1 / 3,
     marginLeft: 12,
     marginRight: 15,
     xVal: ua.device.type === "Mobile" ? mapWidth * 2 / 3 : colorLegendOffset + colorLegendWidth * 2 / 3,
