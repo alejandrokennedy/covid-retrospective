@@ -391,10 +391,7 @@ async function getData() {
             .classed('opening-title', true)
             .classed('introParas', true)
             .style('padding-bottom', 0)
-
-          containerSel.select('div')
-            .style('color', 'pink')
-            .style('background', 'teal')
+            .style('margin-top', '50px')
 				}
 				if (idx === 1) {
           d3.select(container)

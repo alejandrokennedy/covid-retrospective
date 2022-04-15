@@ -43,7 +43,7 @@
   font-style: normal;
   font-display: swap; /* Read next point */
   src: local('Palatino'),
-    url('./Palatino.ttf') format('woff');
+    url('./Palatino.ttc') format('ttc');
     /* url('./Palatino.woff') format('woff'); */
 }
 
