@@ -199,7 +199,7 @@ h4 {
   font-size: 18px;
   line-height: 1.6;
   /* text-shadow: #0a0a0a 1px 0 10px; */
-  text-shadow: 0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717;
+  /* text-shadow: 0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717; */
 }
 
 .opening-title div {

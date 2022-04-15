@@ -721,7 +721,7 @@ const colorCutoff = 400
     .style("text-anchor", "middle")
     .style("font-family", `helvetica`)
     .style("font-weight", `100`)
-    .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
+    .style("text-shadow", ua.device.type === 'Mobile' ? `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717` : `none`)
     .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
     .style('fill', defaultTextColor)
     .text('');
