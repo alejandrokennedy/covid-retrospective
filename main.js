@@ -345,6 +345,7 @@ async function getData() {
 
 			if (header.innerText.length > 0) {
 				header.classList.add(config.theme);
+				header.classList.add('themeHeader');
 				header.setAttribute('id', 'header');
 				story.appendChild(header);
 			}
@@ -356,6 +357,7 @@ async function getData() {
 				if (record.title) {
 					const title = document.createElement('h3');
           title.classList.add(config.theme)
+          header.classList.add('themeTitle');
 					title.innerText = record.title;
 					chapter.appendChild(title);
 				}
@@ -363,6 +365,7 @@ async function getData() {
 				if (record.headline) {
 					const headline = document.createElement('h4');
           headline.classList.add(config.theme)
+          headline.classList.add('themeHeadline')
 					headline.innerText = record.headline;
 					chapter.appendChild(headline)
 				}
@@ -382,11 +385,16 @@ async function getData() {
 				container.setAttribute('id', record.id);
 				container.classList.add('step');
 				if (idx === 0) {
-          d3.select(container)
+          // container.classList.add('opening-title');
+          const containerSel = d3.select(container)
             .classed('active-chapter', true)
             .classed('opening-title', true)
             .classed('introParas', true)
             .style('padding-bottom', 0)
+
+          containerSel.select('div')
+            .style('color', 'pink')
+            .style('background', 'teal')
 				}
 				if (idx === 1) {
           d3.select(container)
@@ -402,6 +410,7 @@ async function getData() {
         .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
 
 				chapter.classList.add(config.theme);
+				chapter.classList.add('themeDescription');
 				container.appendChild(chapter);
 				container.classList.add(alignments[record.alignment] || 'centered');
 				if (record.hidden) {
