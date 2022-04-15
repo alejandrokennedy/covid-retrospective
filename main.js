@@ -165,9 +165,10 @@ function legend({
   // Sequential
   else if (color.interpolator) {
     x = Object.assign(color.copy()
-        .interpolator(d3.interpolateRound(marginLeft, width - marginRight)),
-        {range() { return [marginLeft, width - marginRight]; }});
+      .interpolator(d3.interpolateRound(marginLeft, width - marginRight)),
+      {range() { return [marginLeft, width - marginRight]; }});
 
+    console.log('width - marginLeft - marginRight', width - marginLeft - marginRight)
     colorLegendG.append("image")
       .attr("x", marginLeft)
       .attr("y", marginTop)
@@ -282,10 +283,8 @@ async function getData() {
 
   // const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
   const storyData = await d3.csv('./data/story.csv')
-  // const storyData = await d3.csv('./data/story.json')
-  // const storyData = await d3.csv('./data/chapters.csv')
 
-  console.log('storyData', storyData)
+  // console.log('storyData', storyData)
 
   const postStoryData = performance.now()
   // console.log('storyFetch: ', postStoryData - preStoryData)
@@ -443,7 +442,7 @@ async function getData() {
   const postFetch = performance.now()
   // console.log('after fetch: ', postFetch - preFetch)
 
-  console.log('frames', frames)
+  // console.log('frames', frames)
 
 //---------------------------------------------------------
 // // GEO DATA
