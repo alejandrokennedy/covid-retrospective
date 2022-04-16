@@ -851,6 +851,8 @@ const updateTicker = ticker(mapSvg)
       if (el.id == '1') {
         if (opacityScale.domain()[0] === 0) opacityScale.domain([progress, 1])
         document.getElementById('background-image').style.opacity = opacityScale(progress)
+      } else if (el.id == '0') {
+        document.getElementById('background-image').style.opacity = 1
       } else {
         document.getElementById('background-image').style.opacity = 0
       }
