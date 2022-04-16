@@ -3,6 +3,7 @@ const start = performance.now()
 // SETUP
 
 const ua = detect.parse(navigator.userAgent)
+const opacityScale = d3.scalePow().exponent(7).domain([0, 1]).range([1, 0])
 const phReduction = 165
 const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phReduction : window.innerHeight - 2
 console.log('properHeight reduction', phReduction)
@@ -847,6 +848,12 @@ const updateTicker = ticker(mapSvg)
       const chapter = config.chapters.find(chap => chap.id == el.id);
     },
     progress: function(el, progress) {
+      if (el.id == '1') {
+        if (opacityScale.domain()[0] === 0) opacityScale.domain([progress, 1])
+        document.getElementById('background-image').style.opacity = opacityScale(progress)
+      } else {
+        document.getElementById('background-image').style.opacity = 0
+      }
     },
     exit: function(el) {
       el.classList.remove('active-chapter');
