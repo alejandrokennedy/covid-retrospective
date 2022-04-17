@@ -90,6 +90,7 @@ const dpi = window.devicePixelRatio
 
 const mapCanvas = mapContainer.append('canvas').attr('class', 'mapCanvas')
   .style('position', 'absolute')
+  .style('pointer-events', 'none')
 // resizeCanvas()
 
 function resizeCanvas() {
@@ -716,6 +717,8 @@ const colorCutoff = 400
 
   let vizHidden = true
 
+  // let dragging = false
+
   const progBar = tlGroup.append('rect')
     .attr('class', 'progress hidden')
     .attr('x', 0)
@@ -723,6 +726,26 @@ const colorCutoff = 400
     .attr('width', 1)
     .attr('height', tlHeight)
     .style('fill', defaultTextColor)
+    // .call(d3.drag()
+    //     .on("start", (event, d) => dragging = true)
+    //     .on("drag", (event, d) => {
+    //       console.log('event.x', event.x)
+    //       console.log('window.scrollY', window.scrollY)
+    //       progBar.attr('x', event.x * 250)
+    //       window.scrollTo(0, d3.max([1691, event.x * 250]))
+    //     })
+    //     .on("end", (event, d) => dragging = true)
+    // )
+
+  // const progBarEvents = tlGroup.append('rect')
+  //   .on('click', () => alert('clicked!'))
+  //   .attr('class', 'progressEvent')
+  //   .attr('x', 0 - 5)
+  //   .attr('y', 0 - 5)
+  //   // .attr('width', 1)
+  //   .attr('width', 10)
+  //   .attr('height', tlHeight)
+  //   .style('fill', 'teal')
 
   const tickerText = mapSvg.append('g').append("text")
     .attr('class', 'tickerText')
@@ -732,7 +755,8 @@ const colorCutoff = 400
     .style("text-anchor", "middle")
     .style("font-family", `helvetica`)
     .style("font-weight", `100`)
-    .style("text-shadow", ua.device.type === 'Mobile' ? `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717` : `none`)
+    // .style("text-shadow", ua.device.type === 'Mobile' ? `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717` : `none`)
+    .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
     .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
     .style('fill', defaultTextColor)
     .text('');
@@ -743,6 +767,7 @@ const colorCutoff = 400
 
   const progress = svgEl => {
     return keyframe => {
+      // if (keyframe !== undefined && dragging === false) {
       if (keyframe !== undefined) {
         progBar.attr('x', () => tlX(keyframe.date))
       }

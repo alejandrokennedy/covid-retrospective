@@ -189,6 +189,7 @@ em {
   padding-bottom: 30vh;
   opacity: 0.25;
   z-index: 200;
+  /* pointer-events: none; */
 }
 
 .step.active-chapter {
@@ -225,10 +226,10 @@ em {
 }
 
 /* Fix issue on mobile browser where scroll breaks  */
-.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan,
+/* .mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan,
 .mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan .mapboxgl-canvas {
   touch-action: unset;
-}
+} */
 
 .map-color-key {
   width: 15px;
