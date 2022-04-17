@@ -13,6 +13,14 @@ const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
 .style('width', window.innerWidth - 2)
 
+if (ua.device.type === "Mobile") {
+  d3.select('#background-image').style('height', '100%')
+} else {
+  d3.select('#background-image')
+    .style('width', '100%')
+    .style('margin-top', '-50%')
+}
+
 // console.log('window diff:', window.outerHeight - window.innerHeight)
 // console.log('properHeight', properHeight)
 
@@ -385,16 +393,17 @@ async function getData() {
 
 				container.setAttribute('id', record.id);
 				container.classList.add('step');
-				if (idx === 0) {
-          // container.classList.add('opening-title');
-          const containerSel = d3.select(container)
+				
+        if (idx === 0) {
+          d3.select(container)
             .classed('active-chapter', true)
             .classed('opening-title', true)
             .classed('introParas', true)
             .style('padding-bottom', 0)
             .style('margin-top', '50px')
 				}
-				if (idx === 1) {
+				
+        if (idx === 1) {
           d3.select(container)
             .classed('intro', true)
             .classed('introParas', true)
@@ -403,9 +412,9 @@ async function getData() {
 				}
 
         const steppy = d3.selectAll('.step').selectAll('div')
-        .attr('class', 'storyDiv')
-        .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
-        .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
+          .attr('class', 'storyDiv')
+          .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
+          // .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
 
 				chapter.classList.add(config.theme);
 				chapter.classList.add('themeDescription');
@@ -568,11 +577,12 @@ async function getData() {
   const stepSelection = d3.selectAll('.step')
 
   stepSelection.selectAll('div')
-    .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
     // .style('padding', ua.device.type === "Mobile" ? '25px 35px' : '25px 35px 25px 0px')
 
-  // stepSelection.select('div')
-    // .style('padding', ua.device.type === "Mobile" ? '25px 35px 25px 0px' : '25px 35px')
+  stepSelection.selectAll('div:not(.introParas)').selectAll('*')
+    .style('background', ua.device.type === "Mobile" ? 'rgba(23, 23, 23, 0.65)' : 'none')
+
+  d3.selectAll('.introParas').selectAll('div').selectAll('*').style('background', 'none')
 
   stepSelection
     .data(chapters)

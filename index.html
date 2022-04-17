@@ -9,7 +9,7 @@
 
 	<!-- FONTS -->
 	<!-- <link rel="preload" as="font" href="./Palatino.woff" type="font/woff2" crossorigin="anonymous"> -->
-	<link rel="preload" as="font" href="./Palatino.ttc" type="font/ttc" crossorigin="anonymous">
+	<!-- <link rel="preload" as="font" href="./Palatino.ttc" type="font/ttc" crossorigin="anonymous"> -->
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,18 @@
 	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
 	<script src="https://unpkg.com/enter-view"></script>
+
+	<style type="text/css">
+    @import url("https://fast.fonts.net/lt/1.css?apiType=css&c=a58ecfc6-904c-4b94-b865-f88773639d75&fontids=5198908,5364290");
+    @font-face{
+        font-family:"Palatino LT W05 Light";
+        src:url("Fonts/5198908/66f0dec7-133d-4e87-8db6-447be57cf4b6.woff2") format("woff2"),url("Fonts/5198908/48d93f00-b8b7-4d5c-b323-b1562482235b.woff") format("woff");
+    }
+    @font-face{
+        font-family:"Palatino LT W05 Light Italic";
+        src:url("Fonts/5364290/7ae34564-a859-4d5f-85ae-fa69fdc4c23d.woff2") format("woff2"),url("Fonts/5364290/72a610f0-0346-472f-91d9-ca982fe4a04f.woff") format("woff");
+    }
+	</style>
 
 	<!-- OFFLINE LIBS -->
 	<!-- <script src='./libs/topojson.js'></script>
@@ -32,7 +44,8 @@
 <body>
 	<!-- <div id="main-container"> -->
 		<div class="full-bleed">
-			<img id="background-image" src="https://images.unsplash.com/photo-1593473268908-c92f00c054eb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2787&q=80" alt="">
+			<!-- <img id="background-image" src="https://images.unsplash.com/photo-1593473268908-c92f00c054eb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2787&q=80" alt=""> -->
+			<img id="background-image" src="./bgcovid.jpeg" alt="">
 		</div>
 		<div id="viz-container" style="position: fixed; top: 0;">
 			<div id="container">
