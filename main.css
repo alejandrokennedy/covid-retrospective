@@ -1,38 +1,55 @@
-/* #viz-container {
-  border: 1px solid fuchsia;
-} */
+#large-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+#main-container {
+  /* border: 2px solid turquoise; */
+  max-width: 1480px;
+  width: 100%;
+}
+
+/* everything above is new */
+
+#viz-container {
+  /* border: 1px solid fuchsia; */
+  position: fixed;
+  top: 0;
+  display: grid;
+  /* height: calc(100vh); */
+  grid-template-columns: 1fr 2fr;
+}
 
 #container {
   /* border: 1px solid green; */
-  display: flex;
-  flex-wrap: wrap;
-  width: min(1500px, 100vw - 15px);
-  height: 100%;
-  /* text-align: center; */
+  /* display: flex; */
+  /* flex-wrap: wrap; */
+  /* width: min(1500px, 100vw - 15px); */
+  /* height: 100%; */
+
+  /* from main.js */
+  /* position: relative;
+  margin: 0 auto; */
 }
 
 #story-container {
-  width: min(1500px, 100vw - 15px);
-  /* text-align: center; */
+  /* border: 2px solid burlywood; */
+  /* width: min(1500px, 100vw - 15px); */
 }
 
 #desktop-spacer {
-  /* width: 400px; */
-  width: 300px;
-  /* width: 40vw; */
-  flex-grow: 1;
+  /* border: 2px solid teal; */
+  /* width: 300px; */
+  /* flex-grow: 1; */
 }
 
 #mapAndControls {
   /* border: 2px solid orangered; */
-  /* height: calc(100vh - 52px); */
-  /* height: calc(100vh - 4px); */
-  /* height: 100vh; */
   height: 100%;
-  width: 600px;
-  /* max-width: 600px; */
-  /* width: 60vw; */
-  flex-grow: 2;
+  display: sticky;
+  top: 0px;
+  /* width: 600px; */
+  /* flex-grow: 2; */
 }
 
 body {
@@ -54,20 +71,6 @@ a:hover {
   color: #cba17d;
 }
 
-#map {
-  top: 0;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-}
-
-#satellite {
-  top: 0;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-}
-
 #header {
   margin: auto;
   width: 100%;
@@ -83,11 +86,9 @@ a:hover {
   text-align: center;
 }
 
-/* MODIFIED */
 h3 {
   opacity: 1;
   color: #0a0a0a;
-  /* font-weight: 400; */
   font-weight: 100;
   font-size: 56px;
   line-height: normal;
@@ -98,11 +99,9 @@ h3 {
 h4 {
   opacity: 1;
   color: #0a0a0a;
-  /* font-weight: 400; */
   font-weight: 100;
   font-size: 26px;
   line-height: normal;
-  /* text-align: center; */
   text-align: left;
   margin-bottom: 25px
 }
@@ -115,18 +114,21 @@ em {
   width: 100%;
   min-height: 5vh;
   padding-top: 2vh;
-  /* padding-bottom: 2vh; */
   text-align: left;
   line-height: 25px;
   font-size: 16px;
-  /* font-size: 1.125rem; */
   position: relative;
   z-index: 5;
+  margin-top:800px;
 }
 
 #features {
   padding-top: 10vh;
   padding-bottom: 10vh;
+}
+
+.navygate {
+  line-height:1.1em !important;
 }
 
 .hidden {
@@ -137,18 +139,21 @@ em {
   width: 75vw;
   margin: 0 auto;
   max-width: 900px;
-  /* opacity: 0.99; */
 }
 
 .lefty {
-  width: 33vw;
-  /* margin-left: 5vw; */
-  margin-left: 3vw;
+  /* width: 33vw; */
+  /* margin-left: 3vw; */
+  /* border: 2px solid orangered; */
+  width: 33%;
+  margin-left: 3%;
 }
 
 .righty {
-  width: 33vw;
-  margin-left: 62vw;
+  /* width: 33vw;
+  margin-left: 62vw; */
+  width: 33%;
+  margin-left: 62%;
 }
 
 .fully {
@@ -158,14 +163,11 @@ em {
 
 .light {
   color: #0a0a0a;
-  /* background-color: #fafafa; */
   background-color: #fff;
 }
 
 .dark {
-  /* color: #fafafa; */
   color: #fff;
-  /* background-color: #444; */
   background-color: 'none';
 }
 
@@ -194,8 +196,6 @@ em {
   line-height: 25px;
   font-size: 18px;
   line-height: 1.6;
-  /* text-shadow: #0a0a0a 1px 0 10px; */
-  /* text-shadow: 0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717; */
 }
 
 .opening-title div {
@@ -206,21 +206,21 @@ em {
   width: 100%;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 850px) {
   .centered,
   .lefty,
   .righty,
   .fully {
-    width: 90vw;
+    /* width: 90vw; */
+    width: 90%;
     margin: 0 auto;
   }
+  #viz-container {
+    grid-template-columns: 0fr 1fr;
+    /* margin-left: 3vw;
+    margin-right: 2vw; */
+  }
 }
-
-/* Fix issue on mobile browser where scroll breaks  */
-/* .mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan,
-.mapboxgl-canvas-container.mapboxgl-touch-zoom-rotate.mapboxgl-touch-drag-pan .mapboxgl-canvas {
-  touch-action: unset;
-} */
 
 .map-color-key {
   width: 15px;
@@ -254,5 +254,5 @@ em {
 }
 
 #background-image {
-  filter: brightness(75%)
+  filter: brightness(85%)
 }

@@ -9,9 +9,12 @@ const properHeight = ua.device.type === "Mobile" ? window.innerHeight - 2 - phRe
 console.log('properHeight reduction', phReduction)
 console.log('device type:', ua.device.type)
 
+const mainContainer = d3.select("#main-container");
+const mainWidth = mainContainer.node().getBoundingClientRect().width;
+
 const vizContainer = d3.select('#viz-container')
 .style('height', `${properHeight}px`)
-.style('width', window.innerWidth - 2)
+.style('width', `${mainWidth - 2}px`)
 
 if (ua.device.type === "Mobile") {
   d3.select('#background-image').style('height', '100%')
@@ -51,9 +54,9 @@ const body = d3.select('body')
   .style('background-color', '#171717')
   .style('color', 'white')
 
-const container = d3.select('#container')
-  .style('position', 'relative')
-  .style('margin', '0 auto')
+// const container = d3.select('#container')
+//   .style('position', 'relative')
+//   .style('margin', '0 auto')
 
 // console.log('width', d3.select('#viz-container').node().getBoundingClientRect().width)
 // console.log('container width:', container.node().getBoundingClientRect().width)
@@ -294,8 +297,8 @@ async function getData() {
   const preStoryData = performance.now()
   // console.log('beginning: ', preStoryData - start)
 
-  const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
-  // const storyData = await d3.csv('./data/story.csv')
+  //const storyData = await d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vR4UIxGqH_c3RXWB20CMVvvYlCjWrSiXUB67Cr_0ZyuvYqV-ptD8OUxGSq5MWnZZvyN1u_6J716d0Si/pub?output=csv')
+  const storyData = await d3.csv('./data/story.csv')
 
   // console.log('storyData', storyData)
 
@@ -708,7 +711,7 @@ const colorCutoff = 400
     .style('font-family', 'helvetica')
     .style('font-size', 10)
     .style('fill', defaultTextColor)
-    .text(`Size (of bars, spikes) represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
+    .text(`Size of spikes represents new cases. Color represents new cases per 100,000 people. Both values are based on a ${avgNum}-day rolling average.`)
 
   explanation.each(function() { wrap_text_nchar(d3.select(this), mapWidth / 5) })
   
@@ -753,11 +756,11 @@ const colorCutoff = 400
     .style("font", `bold ${10}px var(--sans-serif)`)
     .style("font-variant-numeric", "tabular-nums")
     .style("text-anchor", "middle")
-    .style("font-family", `helvetica`)
-    .style("font-weight", `100`)
+    .style("font-family", `arial`)
+    .style("font-weight", `700`)
     // .style("text-shadow", ua.device.type === 'Mobile' ? `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717` : `none`)
     .style("text-shadow", `0px 0px 2px #171717, 0px 0px 3px #171717, 0px 0px 3px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717, 0px 0px 5px #171717`)
-    .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 25])}px`)
+    .style("font-size", ua.device.type === 'Mobile' ? `${d3.min([mapWidth/22, 30])}px` : `${d3.min([mapWidth/27, 18])}px`)
     .style('fill', defaultTextColor)
     .text('');
 

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>covid-animation</title>
+	<title>The Virus Years: A U.S. Covid Retrospective</title>
 	<link rel="stylesheet" href="./main.css">
 
 	<!-- FONTS -->
@@ -20,6 +20,7 @@
 	<script src="https://unpkg.com/d3@6.6.0/dist/d3.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.min.js"></script>
 	<script src="https://unpkg.com/enter-view"></script>
+	<script src="https://cdn.jsdelivr.net/npm/scrolltosmooth/dist/scrolltosmooth.pkgd.min.js"></script>
 
 	<style type="text/css">
     @import url("https://fast.fonts.net/lt/1.css?apiType=css&c=a58ecfc6-904c-4b94-b865-f88773639d75&fontids=5198908,5364290");
@@ -32,33 +33,71 @@
         src:url("Fonts/5364290/7ae34564-a859-4d5f-85ae-fa69fdc4c23d.woff2") format("woff2"),url("Fonts/5364290/72a610f0-0346-472f-91d9-ca982fe4a04f.woff") format("woff");
     }
 	</style>
+	<style>
+      html {
+        scroll-behavior: smooth;
+		}
+	</style>
 
 	<!-- OFFLINE LIBS -->
 	<!-- <script src='./libs/topojson.js'></script>
 	<script src="./libs/d3.js"></script>
 	<script src="./libs/detect.js"></script>
 	<script src="./libs/enter-view.js"></script> -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<!-- <script>
+$(document).ready(function(){
+  // Add smooth scrolling to all links
+  $("a").on('click', function(event) {
+
+    // Make sure this.hash has a value before overriding default behavior
+    if (this.hash !== "") {
+      // Prevent default anchor click behavior
+      event.preventDefault();
+
+      // Store hash
+      var hash = this.hash;
+
+      // Using jQuery's animate() method to add smooth page scroll
+      // The optional number (800) specifies the number of milliseconds it takes to scroll to the specified area
+      $('html, body').animate({
+        scrollTop: $(hash).offset().top
+      }, 1800, function(){
+   
+        // Add hash (#) to URL when done scrolling (default click behavior)
+        window.location.hash = hash;
+      });
+    } // End if
+  });
+});
+</script> -->
+	
+	
 
 </head>
-
 <body>
-	<!-- <div id="main-container"> -->
+	<div id="largest-container">
 		<div class="full-bleed">
 			<!-- <img id="background-image" src="https://images.unsplash.com/photo-1593473268908-c92f00c054eb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2787&q=80" alt=""> -->
 			<img id="background-image" src="./bgcovid.jpeg" alt="">
 		</div>
-		<div id="viz-container" style="position: fixed; top: 0;">
-			<div id="container">
-				<div id="desktop-spacer"></div>
-				<div id="mapAndControls" style="display: sticky; top: 0px">
-					<div id="map-container"></div>
+		<div id="large-container">
+			<div id="main-container">
+				<div id="viz-container">
+					<!-- <div id="container"> -->
+						<div id="desktop-spacer"></div>
+						<div id="mapAndControls">
+							<div id="map-container"></div>
+						</div>
+					<!-- </div> -->
+				</div>
+				<div id="story-container">
+					<a name="start"></a>
+					<div id="story"></div>
 				</div>
 			</div>
 		</div>
-		<div id="story-container">
-			<div id="story"></div>
-		</div>
-	<!-- </div> -->
+	</div>
 	<script src="config.js"></script>
 	<script src='main.js'></script>
 </body>
