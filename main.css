@@ -1,7 +1,16 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Palatino LT W05 Light', 'Georgia', 'serif';
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 #large-container {
   display: flex;
   justify-content: space-around;
-  /* border: 2px solid turquoise; */
 }
 
 #main-container {
@@ -10,58 +19,17 @@
   width: 100%;
 }
 
-/* everything above is new */
-
 #viz-container {
-  /* border: 1px solid fuchsia; */
   position: fixed;
   top: 0;
   display: grid;
-  /* height: calc(100vh); */
   grid-template-columns: 1fr 2fr;
 }
 
-#container {
-  /* border: 1px solid green; */
-  /* display: flex; */
-  /* flex-wrap: wrap; */
-  /* width: min(1500px, 100vw - 15px); */
-  /* height: 100%; */
-
-  /* from main.js */
-  /* position: relative;
-  margin: 0 auto; */
-}
-
-#story-container {
-  /* border: 2px solid burlywood; */
-  /* width: min(1500px, 100vw - 15px); */
-}
-
-#desktop-spacer {
-  /* border: 2px solid teal; */
-  /* width: 300px; */
-  /* flex-grow: 1; */
-}
-
 #mapAndControls {
-  /* border: 2px solid orangered; */
   height: 100%;
   display: sticky;
   top: 0px;
-  /* width: 600px; */
-  /* flex-grow: 2; */
-}
-
-body {
-  /* border: 2px solid orangered; */
-  margin: 0;
-  padding: 0;
-  font-family: 'Palatino LT W05 Light', 'Georgia', 'serif';
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 a,
@@ -113,8 +81,7 @@ em {
 }
 
 #footer {
-  /* width: 100%; */
-  max-width: 1480px;
+  width: min(100%, 1400px);
   min-height: 5vh;
   padding-top: 2vh;
   text-align: left;
@@ -145,16 +112,11 @@ em {
 }
 
 .lefty {
-  /* width: 33vw; */
-  /* margin-left: 3vw; */
-  /* border: 2px solid orangered; */
-  width: 33%;
-  margin-left: 3%;
+  width: min(33%, 495px);
+  margin-left: min(3%, 20px);
 }
 
 .righty {
-  /* width: 33vw;
-  margin-left: 62vw; */
   width: 33%;
   margin-left: 62%;
 }
@@ -185,7 +147,6 @@ em {
   padding-bottom: 30vh;
   opacity: 0.25;
   z-index: 200;
-  /* pointer-events: none; */
 }
 
 .step.active-chapter {
@@ -194,8 +155,6 @@ em {
 
 .step div {
   padding: 25px 35px;
-  /* margin: 25px 35px; */
-  /* padding: 25px 35px 25px 0px; */
   line-height: 25px;
   font-size: 18px;
   line-height: 1.6;
@@ -214,14 +173,17 @@ em {
   .lefty,
   .righty,
   .fully {
-    /* width: 90vw; */
     width: 90%;
     margin: 0 auto;
   }
   #viz-container {
     grid-template-columns: 0fr 1fr;
-    /* margin-left: 3vw;
-    margin-right: 2vw; */
+  }
+}
+
+@media (min-width: 1500px) {
+  .lefty {
+    margin-left: 0;
   }
 }
 
@@ -258,5 +220,4 @@ em {
 
 #background-image {
   filter: brightness(85%);
-  /* opacity: 0.2 */
 }
